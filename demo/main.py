@@ -4,7 +4,6 @@ Gradio demo for mulsi.
 
 import gradio as gr
 
-
 demo = gr.TabbedInterface(
     [],
     [],

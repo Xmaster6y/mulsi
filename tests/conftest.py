@@ -3,7 +3,6 @@ Fixtures for tests.
 """
 
 import pytest
-
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
@@ -14,6 +13,7 @@ def model():
     """
     model = AutoModelForCausalLM.from_pretrained("gpt2")
     yield model
+
 
 def tokenizer():
     """

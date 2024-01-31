@@ -6,6 +6,7 @@ import torch
 
 from mulsi import HookedModel, RunConfig
 
+
 class TestCacheInputHook:
     """
     Test the cache input hook.
@@ -17,12 +18,18 @@ class TestCacheInputHook:
         """
         hooked_model = HookedModel(model)
         run_config = RunConfig(
-            cache_output=True,
-            module_exp = r"^transformer\.h\.\d*\.mlp\.act$"
+            cache_output=True, module_exp=r"^transformer\.h\.\d*\.mlp\.act$"
         )
         sentence = "I hate this city"
-        input_ids = {key: input_id.to(model.device) for key, input_id in tokenizer(sentence, return_tensors='pt').items()}
+        input_ids = {
+            key: input_id.to(model.device)
+            for key, input_id in tokenizer(
+                sentence, return_tensors="pt"
+            ).items()
+        }
         with torch.no_grad():
-            _, hate_returned_cache = hooked_model.run_with_hooks(run_config=run_config, **input_ids)
+            _, hate_returned_cache = hooked_model.run_with_hooks(
+                run_config=run_config, **input_ids
+            )
 
         assert "transformer.h.0.mlp.act" in hate_returned_cache
