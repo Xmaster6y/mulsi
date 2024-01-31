@@ -9,6 +9,7 @@ line_length = 79
 name = "mulsi"
 version = "0.1.0"
 description = "Safe inference using representation engineering."
+readme = "README.md"
 license = "MIT"
 authors = [
     "Yoann Poupart <yoann.poupart@ens-lyon.org>",
