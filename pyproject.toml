@@ -1,0 +1,43 @@
+[tool.black]
+line-length = 79
+
+[tool.isort]
+profile = "black"
+line_length = 79
+
+[tool.poetry]
+name = "mulsi"
+version = "0.1.0"
+description = "Safe inference using representation engineering."
+license = "MIT"
+authors = [
+    "Yoann Poupart <yoann.poupart@ens-lyon.org>",
+    "Imene Kerboua <imene.kerboua@esker.com>",
+]
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "default"
+
+[build-system]
+requires = ["poetry-core>=1.6.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+torch = "^2.1.2"
+transformers = "^4.37.2"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "*"
+pytest = "*"
+pytest-cov = "*"
+
+[tool.poetry.group.demo]
+optional = true
+
+[tool.poetry.group.demo.dependencies]
+gradio = "^4.14.0"
