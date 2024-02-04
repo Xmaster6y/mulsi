@@ -15,6 +15,7 @@ def model():
     yield model
 
 
+@pytest.fixture(scope="session")
 def tokenizer():
     """
     Return a tokenizer.

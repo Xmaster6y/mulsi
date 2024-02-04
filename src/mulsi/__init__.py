@@ -2,4 +2,5 @@
 Class imports.
 """
 
-from .hook import HookedModel, RunConfig
+from .hook import AddHook, CacheHook, HookConfig, MeasureHook
+from .model import HookedModel
