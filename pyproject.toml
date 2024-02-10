@@ -7,7 +7,7 @@ line_length = 79
 
 [tool.poetry]
 name = "mulsi"
-version = "0.1.0"
+version = "0.1.1"
 description = "Safe inference using representation engineering."
 readme = "README.md"
 license = "MIT"
