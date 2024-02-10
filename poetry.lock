@@ -223,6 +223,17 @@ files = [
 colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
+name = "cloudpickle"
+version = "3.0.0"
+description = "Pickler class to extend the standard pickle.Pickler functionality"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "cloudpickle-3.0.0-py3-none-any.whl", hash = "sha256:246ee7d0c295602a036e86369c77fecda4ab17b506496730f2f576d9016fd9c7"},
+    {file = "cloudpickle-3.0.0.tar.gz", hash = "sha256:996d9a482c6fb4f33c1a35335cf8afd065d2a56e973270364840712d9131a882"},
+]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -721,6 +732,25 @@ files = [
     {file = "idna-3.6-py3-none-any.whl", hash = "sha256:c05567e9c24a6b9faaa835c4821bad0590fbb9d5779e7caa6e1cc4978e7eb24f"},
     {file = "idna-3.6.tar.gz", hash = "sha256:9ecdbbd083b06798ae1e86adcbfe8ab1479cf864e4ee30fe4e46a003d12491ca"},
 ]
+
+[[package]]
+name = "importlib-metadata"
+version = "7.0.1"
+description = "Read metadata from Python packages"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "importlib_metadata-7.0.1-py3-none-any.whl", hash = "sha256:4805911c3a4ec7c3966410053e9ec6a1fecd629117df5adee56dfc9432a1081e"},
+    {file = "importlib_metadata-7.0.1.tar.gz", hash = "sha256:f238736bb06590ae52ac1fab06a3a9ef1d8dce2b7a35b5ab329371d6c8f5d2cc"},
+]
+
+[package.dependencies]
+zipp = ">=0.5"
+
+[package.extras]
+docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linker (>=1.9)", "sphinx (<7.2.5)", "sphinx (>=3.5)", "sphinx-lint"]
+perf = ["ipython"]
+testing = ["flufl.flake8", "importlib-resources (>=1.3)", "packaging", "pyfakefs", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-mypy (>=0.9.1)", "pytest-perf (>=0.9.2)", "pytest-ruff"]
 
 [[package]]
 name = "importlib-resources"
@@ -2386,6 +2416,42 @@ files = [
 mpmath = ">=0.19"
 
 [[package]]
+name = "tensordict"
+version = "0.3.0"
+description = ""
+optional = false
+python-versions = "*"
+files = [
+    {file = "tensordict-0.3.0-cp310-cp310-macosx_10_15_x86_64.whl", hash = "sha256:be92a4d8c2a05bf4da881f45679510e461bb028d0d81c1d7430f55ecc27c64fa"},
+    {file = "tensordict-0.3.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:4bee18cad5483c8f93c67c1cdf5e66b95dca30627ba54d5865fd3ee206bc14ac"},
+    {file = "tensordict-0.3.0-cp310-cp310-manylinux1_x86_64.whl", hash = "sha256:59e24e505498379c7ff04cd218df5ade709361707e6f199fa019ab89acb84e96"},
+    {file = "tensordict-0.3.0-cp310-cp310-win_amd64.whl", hash = "sha256:986d9ccf3472d553814b40aea45f0bb8e15e8d9a230dcf3540ffcab57e472929"},
+    {file = "tensordict-0.3.0-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:748b42d714d80286e0151956b977dd4ad5efc252d8ad60831c0106550739c44e"},
+    {file = "tensordict-0.3.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:73152793cef87f705fe873c606c1d0336ed5597edb241bf148d7ba4091907853"},
+    {file = "tensordict-0.3.0-cp311-cp311-manylinux1_x86_64.whl", hash = "sha256:340fad70ce38c3c58dba597bc23ad54ae55a5b0cacf60258c6d757a507ba80b9"},
+    {file = "tensordict-0.3.0-cp311-cp311-win_amd64.whl", hash = "sha256:bae590c30dc3d39833217f2eb7f7e5f84da22e49c216cd3b67255e9149fe278f"},
+    {file = "tensordict-0.3.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:c5e6daf347ca7048687358aa2f71c3e70e39f692fa2241f8e2980a140a4509c5"},
+    {file = "tensordict-0.3.0-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:bb45d5497bc138f180487a8d28787250273f4f1080b6dab3ce4685e953536867"},
+    {file = "tensordict-0.3.0-cp38-cp38-macosx_11_0_x86_64.whl", hash = "sha256:1319454944fc2079316f13a18dbfad2e725f9424b334094f8476199832b799fd"},
+    {file = "tensordict-0.3.0-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:0f577d189caa87aea952d116cb265a4b2b95e277c3b701c7f5d4dc2ee7dcce4a"},
+    {file = "tensordict-0.3.0-cp38-cp38-win_amd64.whl", hash = "sha256:280e4da61e69e18bdf5c64c9f2b09b4fc865375a8215e74a42b341c1d38c22a9"},
+    {file = "tensordict-0.3.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:07099a59cbdc241aa72fe71d7c68c36f3f46c2eab4e9b1b4b196e1620d26c24f"},
+    {file = "tensordict-0.3.0-cp39-cp39-macosx_11_0_x86_64.whl", hash = "sha256:859c3a7f274997c2ff49641d6f2e08d1ad9f7e7f16200deeeff33a22c3cc31c5"},
+    {file = "tensordict-0.3.0-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:4c1081f1467739674410aab1bc8cdd177834afa3dcef357df0e1c75c34ee9e30"},
+    {file = "tensordict-0.3.0-cp39-cp39-win_amd64.whl", hash = "sha256:dfb7e184d2c349753277fa65eb85c9f416a3aef4c1b252ebbea979ffc70c0d9f"},
+]
+
+[package.dependencies]
+cloudpickle = "*"
+numpy = "*"
+torch = ">=2.1.0"
+
+[package.extras]
+checkpointing = ["torchsnapshot-nightly"]
+h5 = ["h5py (>=3.8)"]
+tests = ["pytest", "pytest-benchmark", "pytest-instafail", "pytest-rerunfailures", "pyyaml"]
+
+[[package]]
 name = "tokenizers"
 version = "0.15.1"
 description = ""
@@ -2715,6 +2781,25 @@ tests = ["autopep8", "flake8", "isort", "numpy", "pytest", "scipy (>=1.7.1)", "t
 tutorials = ["matplotlib", "pandas", "tabulate", "torch"]
 
 [[package]]
+name = "typeguard"
+version = "4.1.5"
+description = "Run-time type checker for Python"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "typeguard-4.1.5-py3-none-any.whl", hash = "sha256:8923e55f8873caec136c892c3bed1f676eae7be57cdb94819281b3d3bc9c0953"},
+    {file = "typeguard-4.1.5.tar.gz", hash = "sha256:ea0a113bbc111bcffc90789ebb215625c963411f7096a7e9062d4e4630c155fd"},
+]
+
+[package.dependencies]
+importlib-metadata = {version = ">=3.6", markers = "python_version < \"3.10\""}
+typing-extensions = {version = ">=4.7.0", markers = "python_version < \"3.12\""}
+
+[package.extras]
+doc = ["Sphinx (>=7)", "packaging", "sphinx-autodoc-typehints (>=1.2.0)"]
+test = ["coverage[toml] (>=7)", "mypy (>=1.2.0)", "pytest (>=7)"]
+
+[[package]]
 name = "typer"
 version = "0.9.0"
 description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
@@ -2913,4 +2998,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "77c773b2a9e07f070179e34141092fe606a725cb9ebc1da497e30b5b9ab6b182"
+content-hash = "64dcd9e281d842917584b94dcfe821de774b5867eed0077fb42a4be886b62ddf"

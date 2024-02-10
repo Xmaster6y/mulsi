@@ -33,7 +33,7 @@ class HookType(str, Enum):
 
 class HookMode(str, Enum):
     """
-    Enum for cache mode.
+    Enum for hook mode.
     """
 
     INPUT = "input"
