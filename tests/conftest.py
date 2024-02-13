@@ -5,6 +5,8 @@ Fixtures for tests.
 import pytest
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+from mulsi import TdTokenizer
+
 
 @pytest.fixture(scope="session")
 def model():
@@ -16,9 +18,10 @@ def model():
 
 
 @pytest.fixture(scope="session")
-def tokenizer():
+def td_tokenizer():
     """
     Return a tokenizer.
     """
     tokenizer = AutoTokenizer.from_pretrained("gpt2")
-    yield tokenizer
+    td_tokenizer = TdTokenizer(tokenizer)
+    yield td_tokenizer

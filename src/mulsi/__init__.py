@@ -3,5 +3,5 @@ Class imports.
 """
 
 from .hook import AddHook, CacheHook, HookConfig, MeasureHook
-from .model import HookedModel
+from .processor import DiffClipProcessor, TdTokenizer
 from .representation import Representation

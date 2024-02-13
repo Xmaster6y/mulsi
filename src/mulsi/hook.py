@@ -41,7 +41,7 @@ class HookMode(str, Enum):
 
 
 @dataclass
-class HookConfig(ABC):
+class HookConfig:
     """
     Configuration for hooks.
     """

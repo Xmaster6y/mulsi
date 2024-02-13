@@ -1,5 +1,4 @@
-"""
-Module to abstract the internal representation of the model.
+"""Module to abstract the internal representation of the model.
 """
 
 from typing import Union
@@ -11,16 +10,12 @@ from typeguard import check_type
 
 
 class Representation(TensorDict):
-    """
-    Class for representation.
-    """
+    """Class for manipulating representations."""
 
     def __add__(
         self, other: Union[Number, torch.Tensor, "Representation"]
     ) -> "Representation":
-        """
-        Adds two representations.
-        """
+        """Adds two representations."""
         check_type(other, Union[Number, torch.Tensor, "Representation"])
         if isinstance(other, Representation):
             if self.keys() != other.keys():
@@ -41,9 +36,7 @@ class Representation(TensorDict):
     def __mul__(
         self, other: Union[Number, torch.Tensor, "Representation"]
     ) -> "Representation":
-        """
-        Multiplies two representations.
-        """
+        """Multiplies two representations."""
         check_type(other, Union[Number, torch.Tensor, "Representation"])
         if isinstance(other, Representation):
             if self.keys() != other.keys():
@@ -63,26 +56,24 @@ class Representation(TensorDict):
             return Representation(self.apply(lambda value: value * other))
 
     def __neg__(self) -> "Representation":
-        """
-        Negates the representation.
-        """
+        """Negates the representation."""
         return self.__mul__(-1)
 
     def __sub__(
         self, other: Union[Number, torch.Tensor, "Representation"]
     ) -> "Representation":
-        """
-        Subtracts two representations.
-        """
+        """Subtracts two representations."""
         return self.__add__(-other)
+
+    def dot(self, other: "Representation") -> torch.Tensor:
+        """Computes the dot product of two representations."""
+        raise NotImplementedError()
 
     @classmethod
     def mean_representation(
         cls, *representations: "Representation"
     ) -> "Representation":
-        """
-        Averages the representations.
-        """
+        """Averages the representations."""
         if not representations:
             raise ValueError("No representations given.")
         new_dict = {}
