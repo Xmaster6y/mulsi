@@ -81,6 +81,4 @@ class Representation(TensorDict):
             new_dict[key] = torch.mean(
                 torch.stack([rep[key] for rep in representations]), dim=0
             )
-        return Representation(
-            new_dict, batch_size=representations[0].batch_size
-        )
+        return cls(new_dict, batch_size=representations[0].batch_size)
