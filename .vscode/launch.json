@@ -3,7 +3,7 @@
     "configurations": [
         {
             "name": "Tests",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "pytest",
             "args": ["tests", "--cov=src", "--capture=no"],
@@ -12,9 +12,17 @@
         },
         {
             "name": "Demo",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "demo.main",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Script Contrast",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.contrast_reading",
             "console": "integratedTerminal",
             "justMyCode": false
         }
