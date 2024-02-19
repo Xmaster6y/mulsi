@@ -16,18 +16,19 @@ class TestSimpleRepresentation:
             {
                 "a": torch.tensor([-1.0, -2.0, -3.0]),
                 "b": torch.tensor([1.0, 2.0, 3.0]),
-            },
-            batch_size=3,
+            }
         )
         zero_representation = representation + representation
         expected_representation = Representation(
             {
                 "a": torch.tensor([-2.0, -4.0, -6.0]),
                 "b": torch.tensor([2.0, 4.0, 6.0]),
-            },
-            batch_size=3,
+            }
         )
-        assert (zero_representation == expected_representation).all()
+        for key in zero_representation.keys():
+            assert (
+                zero_representation[key] == expected_representation[key]
+            ).all()
 
     def test_mul_representation(self):
         """
@@ -37,18 +38,19 @@ class TestSimpleRepresentation:
             {
                 "a": torch.tensor([-1.0, -2.0, -3.0]),
                 "b": torch.tensor([1.0, 2.0, 3.0]),
-            },
-            batch_size=3,
+            }
         )
         zero_representation = representation * 0
         expected_representation = Representation(
             {
                 "a": torch.tensor([0.0, 0.0, 0.0]),
                 "b": torch.tensor([0.0, 0.0, 0.0]),
-            },
-            batch_size=3,
+            }
         )
-        assert (zero_representation == expected_representation).all()
+        for key in zero_representation.keys():
+            assert (
+                zero_representation[key] == expected_representation[key]
+            ).all()
 
     def test_sub_representation(self):
         """
@@ -58,15 +60,16 @@ class TestSimpleRepresentation:
             {
                 "a": torch.tensor([1.0, 2.0, 3.0]),
                 "b": torch.tensor([1.0, 2.0, 3.0]),
-            },
-            batch_size=3,
+            }
         )
         zero_representation = representation - representation
         expected_representation = Representation(
             {
                 "a": torch.tensor([0.0, 0.0, 0.0]),
                 "b": torch.tensor([0.0, 0.0, 0.0]),
-            },
-            batch_size=3,
+            }
         )
-        assert (zero_representation == expected_representation).all()
+        for key in zero_representation.keys():
+            assert (
+                zero_representation[key] == expected_representation[key]
+            ).all()

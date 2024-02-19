@@ -15,6 +15,11 @@ class RepresentationReader(ABC):
         """Reads the representations."""
         pass
 
+    @abstractmethod
+    def compute_reading_vector(self, **kwargs):
+        """Computes the reading vector."""
+        pass
+
     @classmethod
     def register(cls, name: str):
         """Registers the reader."""

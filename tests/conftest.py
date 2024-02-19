@@ -38,8 +38,8 @@ def clip_model():
 @pytest.fixture(scope="session")
 def clip_processor():
     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-    td_tokenizer = DiffClipProcessor(processor.image_processor)
-    yield td_tokenizer
+    clip_processor = DiffClipProcessor(processor.image_processor)
+    yield clip_processor
 
 
 @pytest.fixture(scope="session")

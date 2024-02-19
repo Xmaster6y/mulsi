@@ -3,7 +3,7 @@
 
 import torch
 
-from mulsi import CacheHook, HookConfig
+from mulsi.hook import CacheHook, HookConfig
 
 
 class TestCacheInputHook:

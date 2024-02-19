@@ -16,10 +16,10 @@ class RemovableHandleList(list):
     A list of handles that can be removed.
     """
 
-    def remove(self):
+    def clear(self):
         for handle in self:
             handle.remove()
-        self.clear()
+        super().clear()
 
 
 class HookType(str, Enum):
@@ -94,7 +94,14 @@ class Hook(ABC):
         """
         Removes the hook.
         """
-        self.removable_handles.remove()
+        self.removable_handles.clear()
+
+    def clear(self):
+        """
+        Clears the storage.
+        """
+        self.storage.clear()
+        self.removable_handles.clear()
 
     @abstractmethod
     def forward_factory(self, name: str):
