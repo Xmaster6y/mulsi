@@ -150,9 +150,14 @@ class MeasureHook(Hook):
     """
 
     def forward_factory(self, name: str):
+        if self.config.data is not None:
+            measure_data = self.config.data[name]
+        else:
+            measure_data = None
+
         def hook(module, input, output):
             self.storage[name] = self.config.data_fn(
-                input, self.config.data[name]
+                input, measure_data=measure_data
             )
 
         return hook
@@ -163,14 +168,19 @@ class MeasureHook(Hook):
         )
 
 
-class AddHook(Hook):
+class ModifyHook(Hook):
     """
-    Hook for adding vectors.
+    Hook for modifying vectors.
     """
 
     def forward_factory(self, name: str):
+        if self.config.data is not None:
+            modify_data = self.config.data[name]
+        else:
+            modify_data = None
+
         def hook(module, input, output):
-            output = self.config.data_fn(output, self.config.data[name])
+            output = self.config.data_fn(output, modify_data=modify_data)
             return output
 
         return hook
