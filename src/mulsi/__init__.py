@@ -3,8 +3,7 @@
 
 __version__ = "0.1.1"
 
-from .attack import Attack
-from .attacks import Fgsm
+from .adversarial import AdversarialImage
 from .processor import DiffClipProcessor, TdTokenizer
 from .reader import RepresentationReader
 from .readers import ContrastReader
