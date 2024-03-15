@@ -34,8 +34,7 @@ class Probe(ABC):
     def score(self, activations: torch.Tensor, labels: Any, **kwargs):
         """Score the probe."""
         predictions = self.predict(activations, **kwargs)
-        scores = {}
-        scores["mse"] = torch.nn.functional.mse_loss(predictions, labels)
+        scores = {"mse": torch.nn.functional.mse_loss(predictions, labels)}
         scores["accuracy"] = (
             (predictions.argmax(dim=1) == labels.argmax(dim=1)).float().mean()
         )
