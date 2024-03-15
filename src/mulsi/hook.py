@@ -117,6 +117,13 @@ class Hook(ABC):
         """
         pass
 
+    def _get_data(self, name):
+        return (
+            self.config.data.get(name)
+            if self.config.data is not None
+            else None
+        )
+
 
 class CacheHook(Hook):
     """
@@ -150,16 +157,24 @@ class MeasureHook(Hook):
     """
 
     def forward_factory(self, name: str):
-        if self.config.data is not None:
-            measure_data = self.config.data[name]
+        if self.config.hook_mode is HookMode.INPUT:
+
+            def hook(module, input, output):
+                measure_data = self._get_data(name)
+                self.storage[name] = self.config.data_fn(
+                    input, measure_data=measure_data
+                )
+
+        elif self.config.hook_mode is HookMode.OUTPUT:
+
+            def hook(module, input, output):
+                measure_data = self._get_data(name)
+                self.storage[name] = self.config.data_fn(
+                    output, measure_data=measure_data
+                )
+
         else:
-            measure_data = None
-
-        def hook(module, input, output):
-            self.storage[name] = self.config.data_fn(
-                input, measure_data=measure_data
-            )
-
+            raise ValueError(f"Unknown measure mode: {self.config.hook_mode}")
         return hook
 
     def backward_factory(self, name: str):
@@ -174,14 +189,26 @@ class ModifyHook(Hook):
     """
 
     def forward_factory(self, name: str):
-        if self.config.data is not None:
-            modify_data = self.config.data[name]
-        else:
-            modify_data = None
+        if self.config.hook_mode is HookMode.INPUT:
 
-        def hook(module, input, output):
-            output = self.config.data_fn(output, modify_data=modify_data)
-            return output
+            def hook(module, input, output):
+                modify_data = self._get_data(name)
+                self.storage[name] = self.config.data_fn(
+                    input, modify_data=modify_data
+                )
+                return input
+
+        elif self.config.hook_mode is HookMode.OUTPUT:
+
+            def hook(module, input, output):
+                modify_data = self._get_data(name)
+                self.storage[name] = self.config.data_fn(
+                    output, modify_data=modify_data
+                )
+                return output
+
+        else:
+            raise ValueError(f"Unknown modify mode: {self.config.hook_mode}")
 
         return hook
 
