@@ -7,6 +7,8 @@ from typing import Dict, Optional, Union
 import torch
 from torch.utils.data import Dataset
 
+from mulsi.wrapper import ClipWrapper, LlmWrapper
+
 
 class LossType(int, Enum):
     TOKEN_PREDICTION = 0
@@ -20,19 +22,19 @@ class AdversarialImage:
     def __init__(
         self,
         base_image: torch.Tensor,
-        encoder,
-        decoder,
+        clip_wrapper: ClipWrapper,
+        llm_wrapper: LlmWrapper,
     ) -> None:
         self.base_image = base_image
         self.delta = torch.zeros_like(base_image, dtype=float)
         self.delta.requires_grad = True
-        self.encoder = encoder
-        self.decoder = decoder
+        self.clip_wrapper = clip_wrapper
+        self.llm_wrapper = llm_wrapper
 
     @property
     def adv(self) -> torch.Tensor:
         _adv = self.base_image + self.delta
-        return _adv.requires_grad_(False).int()
+        return _adv.detach().int()
 
     def fgsm_(
         self,
@@ -40,6 +42,7 @@ class AdversarialImage:
         losses: Dict[LossType, float],
         samples: Dict[LossType, Union[torch.Tensor, Dataset]],
         alpha: Optional[float] = None,
+        use_sign: bool = True,
     ) -> None:
         """Perform the attack."""
         if losses.keys() != samples.keys():
@@ -51,7 +54,10 @@ class AdversarialImage:
             )
         loss.backward()
         grad_mul = alpha or epsilon
-        self.delta.add_(grad_mul * self.delta.grad.sign())
+        if use_sign:
+            self.delta.add_(grad_mul * self.delta.grad.sign())
+        else:
+            self.delta.add_(grad_mul * self.delta.grad)
         self._ensure_valid_delta_(epsilon)
 
     def fgsm_iter_(
@@ -61,9 +67,10 @@ class AdversarialImage:
         samples: Dict[LossType, Union[torch.Tensor, Dataset]],
         n_iter: int,
         alpha: Optional[float] = None,
+        use_sign: bool = True,
     ) -> None:
         for _ in range(n_iter):
-            self.fgsm_(epsilon, losses, samples, alpha)
+            self.fgsm_(epsilon, losses, samples, alpha, use_sign)
 
     @torch.no_grad
     def _ensure_valid_delta_(self, epsilon: int) -> None:
@@ -76,10 +83,16 @@ class AdversarialImage:
         self, loss_type: LossType, sample: Union[torch.Tensor, Dataset]
     ) -> torch.Tensor:
         if loss_type == LossType.TOKEN_PREDICTION:
-            raise NotImplementedError
+            return self.llm_wrapper.compute_loss(
+                self.base_image + self.delta, sample
+            )
         elif loss_type == LossType.TEXT_EMBEDDING:
-            raise NotImplementedError
+            return self.clip_wrapper.compute_loss(
+                self.base_image + self.delta, sample, text=True
+            )
         elif loss_type == LossType.IMAGE_EMBEDDING:
-            raise NotImplementedError
+            return self.clip_wrapper.compute_loss(
+                self.base_image + self.delta, sample, text=False
+            )
         else:
             raise ValueError(f"Invalid loss_type: {loss_type}")

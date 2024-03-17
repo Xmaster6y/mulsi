@@ -1,36 +1,36 @@
 """Module for reading representations from a model.
 """
 
-from abc import ABC, abstractmethod
-from typing import Dict, Type
+from typing import Union
+
+from mulsi.wrapper import ClipWrapper, LlmWrapper
 
 
-class RepresentationReader(ABC):
-    """Reads representations from a model."""
+class ContrastReader:
+    """Class to read a representation using contrast vectors."""
 
-    all_readers: Dict[str, Type["RepresentationReader"]] = {}
+    def __init__(self, pros_inputs, cons_inputs):
+        self.pros_inputs = pros_inputs
+        self.cons_inputs = cons_inputs
 
-    @abstractmethod
-    def read(self, **kwargs):
-        """Reads the representations."""
-        pass
+    def read(
+        self,
+        wrapper: Union[LlmWrapper, ClipWrapper],
+        inputs,
+        reading_vector=None,
+        **kwargs
+    ):
+        """Reads the representation."""
+        if reading_vector is None:
+            reading_vector = self.compute_reading_vector(wrapper, **kwargs)
+        return wrapper.compute_representation(inputs, **kwargs).cosim(
+            reading_vector
+        )
 
-    @abstractmethod
-    def compute_reading_vector(self, **kwargs):
-        """Computes the reading vector."""
-        pass
-
-    @classmethod
-    def register(cls, name: str):
-        """Registers the reader."""
-
-        def decorator(subclass):
-            cls.all_readers[name] = subclass
-            return subclass
-
-        return decorator
-
-    @classmethod
-    def from_name(cls, name: str, **kwargs) -> "RepresentationReader":
-        """Returns the reader from the name."""
-        return cls.all_readers[name](**kwargs)
+    def compute_reading_vector(
+        self, wrapper: Union[LlmWrapper, ClipWrapper], **kwargs
+    ):
+        """Reads the representation."""
+        return wrapper.compute_representation(
+            self.pros_inputs, **kwargs
+        ) - wrapper.compute_representation(self.cons_inputs, **kwargs)

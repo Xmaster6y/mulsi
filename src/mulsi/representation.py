@@ -56,14 +56,26 @@ class Representation(dict):
         """Subtracts two representations."""
         return self.__add__(-other)
 
+    def dot_prod(self, other: "Representation") -> torch.Tensor:
+        """Computes the dot product between two representations."""
+        return (self * other).scalar_sum()
+
+    def norm(self) -> torch.Tensor:
+        """Computes the norm of the representation."""
+        return torch.sqrt(self.dot_prod(self))
+
     def cosim(self, other: "Representation") -> torch.Tensor:
         """Computes the cosine similarity between two representations."""
-        return (self * other).flatten().scalar_avg()
+        return self.dot_prod(other) / (self.norm() * other.norm())
+
+    def scalar_sum(self) -> torch.Tensor:
+        """Computes the average of the representation."""
+        return sum([value.sum() for value in self.values()])
 
     def scalar_avg(self) -> torch.Tensor:
         """Computes the average of the representation."""
         total_size = sum([value.numel() for value in self.values()])
-        return sum([value.sum() for value in self.values()]) / total_size
+        return self.scalar_sum() / total_size
 
     def apply(self, func: Callable) -> "Representation":
         """Applies a function to the representation."""
@@ -72,14 +84,14 @@ class Representation(dict):
             new_dict[key] = func(self[key])
         return Representation(new_dict)
 
-    def mean(self, dim: int) -> "Representation":
+    def mean(self, dim) -> "Representation":
         """Computes the mean of the representation."""
         new_dict = {}
         for key in self.keys():
             new_dict[key] = self[key].mean(dim=dim)
         return Representation(new_dict)
 
-    def flatten(self) -> torch.Tensor:
+    def flatten(self) -> "Representation":
         """Flattens the representation."""
         new_dict = {}
         for key in self.keys():
