@@ -46,5 +46,5 @@ gdown = "^5.1.0"
 optional = true
 
 [tool.poetry.group.demo.dependencies]
-gradio = "^4.14.0"
+gradio = {extras = ["oauth"], version = "^4.24.0"}
 jsonlines = "^4.0.0"
