@@ -12,6 +12,6 @@ tests:
 	poetry run pytest tests --cov=src --cov-report=term-missing --cov-fail-under=50 -s -v
 
 # API
-.PHONY: app-start
-app-start:
-	poetry run python -m demo.main
+.PHONY: demo-explore-label-concepts
+demo-explore-label-concepts:
+	poetry run python explore-label-concepts/app.py
