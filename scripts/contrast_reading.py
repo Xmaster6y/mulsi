@@ -9,7 +9,7 @@ poetry run python -m scripts.contrast_reading
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from mulsi import ContrastReader, LlmWrapper, TdTokenizer
-from scripts import viz
+from scripts.utils import viz
 
 ####################
 # HYPERPARAMETERS
