@@ -10,7 +10,7 @@ import argparse
 
 import torch
 import wandb
-from datasets import load_dataset
+from datasets import Features, Image, Value, load_dataset
 from huggingface_hub import HfApi
 from torch.utils.data import DataLoader
 from transformers import CLIPModel, CLIPProcessor
@@ -28,6 +28,7 @@ parser.add_argument(
 parser.add_argument(
     "--dataset_name", type=str, default="Xmaster6y/fruit-vegetable-concepts"
 )
+parser.add_argument("--download_dataset", action="store_true", default=False)
 parser.add_argument("--batch_size", type=int, default=64)
 parser.add_argument("--n_epochs", type=int, default=3)
 parser.add_argument("--lr", type=float, default=1e-5)
@@ -46,12 +47,17 @@ model.to(DEVICE)
 for param in model.parameters():
     param.requires_grad = False
 
-hf_api.snapshot_download(
-    repo_id=ARGS.dataset_name,
-    repo_type="dataset",
-    local_dir=f"{ASSETS_FOLDER}/{ARGS.dataset_name}",
+if ARGS.download_dataset:
+    hf_api.snapshot_download(
+        repo_id=ARGS.dataset_name,
+        repo_type="dataset",
+        local_dir=f"{ASSETS_FOLDER}/{ARGS.dataset_name}",
+    )
+features = Features({"image": Image(), "class": Value(dtype="string")})
+dataset = load_dataset(
+    f"{ASSETS_FOLDER}/{ARGS.dataset_name}", features=features
 )
-dataset = load_dataset(f"{ASSETS_FOLDER}/{ARGS.dataset_name}")
+dataset = dataset.class_encode_column("class")
 
 train_dataloader = DataLoader(
     dataset["train"],
