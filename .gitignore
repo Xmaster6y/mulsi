@@ -130,4 +130,5 @@ dmypy.json
 
 # Various files
 ignored
+wandb
 *secret*

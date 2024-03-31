@@ -25,6 +25,14 @@
             "module": "scripts.contrast_reading",
             "console": "integratedTerminal",
             "justMyCode": false
+        },
+        {
+            "name": "Script Train CLF",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.train_clf",
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }

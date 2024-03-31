@@ -9,12 +9,12 @@ poetry run python -m scripts.train_clf
 import argparse
 
 import torch
-import wandb
 from datasets import Features, Image, Value, load_dataset
 from huggingface_hub import HfApi
 from torch.utils.data import DataLoader
 from transformers import CLIPModel, CLIPProcessor
 
+import wandb
 from scripts.constants import ASSETS_FOLDER, HF_TOKEN, WANDB_API_KEY
 from scripts.utils.clf import CLF
 
@@ -59,19 +59,27 @@ dataset = load_dataset(
 )
 dataset = dataset.class_encode_column("class")
 
+
+def collate_fn(batch):
+    images, classes = zip(*[(x["image"], x["class"]) for x in batch])
+    return images, classes
+
+
 train_dataloader = DataLoader(
     dataset["train"],
     batch_size=ARGS.batch_size,
     shuffle=True,
+    collate_fn=collate_fn,
 )
 val_dataloader = DataLoader(
     dataset["validation"],
     batch_size=ARGS.batch_size,
     shuffle=False,
+    collate_fn=collate_fn,
 )
 
 clf = CLF(
-    n_hidden=model.config.hidden_size,
+    n_hidden=model.vision_model.config.hidden_size,
     classes=dataset["train"].features["class"].names,
 )
 clf.to(DEVICE)
@@ -86,17 +94,16 @@ with wandb.init(  # type: ignore
     for epoch in range(ARGS.n_epochs):
         clf.train()
         for i, batch in enumerate(train_dataloader):
-            inputs = processor(
-                text=batch["text"],
+            images, classes = batch
+            image_inputs = processor(
+                images=images,
                 return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=128,
             )
-            inputs = {k: v.to(DEVICE) for k, v in inputs.items()}
-            labels = batch["class"].to(DEVICE)
+            image_inputs = {k: v.to(DEVICE) for k, v in image_inputs.items()}
+            labels = torch.tensor(classes).to(DEVICE)
             optimizer.zero_grad()
-            loss = clf.loss(model(**inputs).last_hidden_state, labels)
+            x = model.vision_model(**image_inputs)
+            loss = clf.loss(x["pooler_output"], labels)
             loss.backward()
             optimizer.step()
             wandb.log({"train_loss": loss.item()})
@@ -105,18 +112,22 @@ with wandb.init(  # type: ignore
         with torch.no_grad():
             val_loss = 0
             for i, batch in enumerate(val_dataloader):
-                inputs = processor(
-                    text=batch["text"],
+                images, classes = batch
+                image_inputs = processor(
+                    images=images,
                     return_tensors="pt",
-                    padding=True,
-                    truncation=True,
-                    max_length=128,
                 )
-                inputs = {k: v.to(DEVICE) for k, v in inputs.items()}
-                labels = batch["class"].to(DEVICE)
-                loss = clf.loss(model(**inputs).last_hidden_state, labels)
+                image_inputs = {
+                    k: v.to(DEVICE) for k, v in image_inputs.items()
+                }
+                labels = torch.tensor(classes).to(DEVICE)
+                x = model.vision_model(**image_inputs)
+                loss = clf.loss(x["pooler_output"], labels)
                 val_loss += loss.item()
-            wandb.log({"val_loss": val_loss / len(val_dataloader)})
+            val_loss /= len(val_dataloader)
+            wandb.log({"val_loss": val_loss})
+
+    torch.save(clf.state_dict(), f"{ASSETS_FOLDER}/model.pt")
 
 hf_api.upload_file(
     path_or_fileobj=f"{ASSETS_FOLDER}/model.pt",
