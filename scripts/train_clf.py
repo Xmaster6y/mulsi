@@ -132,6 +132,6 @@ with wandb.init(  # type: ignore
 hf_api.upload_file(
     path_or_fileobj=f"{ASSETS_FOLDER}/model.pt",
     path_in_repo=f"data/{ARGS.model_name}",
-    repo_id="Xmaster6y/fruit-vegetable-clfs",
+    repo_id=ARGS.dataset_name.replace("concepts", "clfs"),
     repo_type="dataset",
 )

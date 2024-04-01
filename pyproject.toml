@@ -32,6 +32,8 @@ tensordict = "^0.3.0"
 typeguard = "^4.1.5"
 einops = "^0.7.0"
 torchvision = "^0.17.0"
+datasets = {version = "^2.18.0", extras = ["scripts"]}
+wandb = {version = "^0.16.5", extras = ["scripts"]}
 
 [tool.poetry.group.dev]
 optional = true
