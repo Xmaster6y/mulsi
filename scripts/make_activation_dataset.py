@@ -8,6 +8,7 @@ poetry run python -m scripts.train_clf
 
 import argparse
 import pathlib
+import shutil
 
 import torch
 from datasets import Features, Image, Value, load_dataset
@@ -76,7 +77,6 @@ dataloaders = {
 }
 
 cache_hook = CacheHook(HookConfig(module_exp=r".*\.layers\.\d+$"))
-folder_made = []
 cache_hook.register(model.vision_model)
 with torch.no_grad():
     for split, dataloader in dataloaders.items():
@@ -89,22 +89,20 @@ with torch.no_grad():
             image_inputs = {k: v.to(DEVICE) for k, v in image_inputs.items()}
             x = model.vision_model(**image_inputs)
             for layer, batched_activations in cache_hook.storage.items():
+                folder = pathlib.Path(
+                    f"{ASSETS_FOLDER}/data/"
+                    f"{ARGS.model_name.replace('/', '.')}_{layer}/{split}"
+                )
+                folder.mkdir(parents=True, exist_ok=True)
                 for i in range(ARGS.batch_size):
                     tensor = batched_activations[0][i]
                     t_id = ids[i]
-                    folder = pathlib.Path(
-                        f"{ASSETS_FOLDER}/data/"
-                        f"{ARGS.model_name.replace('/', '.')}_{layer}/{split}"
-                    )
-                    if folder not in folder_made:
-                        folder.mkdir(parents=True, exist_ok=True)
-                        folder_made.append(folder)
                     torch.save(tensor, f"{folder}/{t_id}.pt")
 
-
-hf_api.upload_folder(
-    folder_path=f"{ASSETS_FOLDER}/data",
-    path_in_repo="data",
-    repo_id=ARGS.dataset_name.replace("concepts", "activations"),
-    repo_type="dataset",
-)
+            hf_api.upload_folder(
+                folder_path=f"{ASSETS_FOLDER}/data",
+                path_in_repo="data",
+                repo_id=ARGS.dataset_name.replace("concepts", "activations"),
+                repo_type="dataset",
+            )
+            shutil.rmtree(f"{ASSETS_FOLDER}/data")
