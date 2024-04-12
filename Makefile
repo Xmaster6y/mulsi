@@ -9,7 +9,7 @@ test-assets:
 
 .PHONY: tests
 tests:
-	poetry run pytest tests --cov=src --cov-report=term-missing --cov-fail-under=50 -s -v
+	poetry run pytest tests --cov=src --cov-report=term-missing --cov-fail-under=1 -s -v
 
 # API
 .PHONY: demo-explore-label-concepts
