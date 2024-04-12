@@ -32,7 +32,7 @@ parser.add_argument(
 )
 parser.add_argument("--download_dataset", action="store_true", default=False)
 parser.add_argument("--batch_size", type=int, default=64)
-parser.add_argument("--layers", type=str, default="0,6,12")
+parser.add_argument("--layers", type=str, default="0,6,11")
 ####################
 
 ARGS = parser.parse_args()
@@ -124,18 +124,18 @@ gen_dict = make_generators(
     make_gen_list=make_gen_list,
     dataloaders=dataloaders,
 )
-ds = DatasetDict(
-    {
-        f"layers.{layer}": DatasetDict(
-            {
-                split: Dataset.from_generator(gen_dict[layer][split])
-                for split in splits
-            }
-        )
-        for layer in layers
-    }
-)
+dataset_dict = {
+    f"layers.{layer}": DatasetDict(
+        {
+            split: Dataset.from_generator(gen_dict[layer][split])
+            for split in splits
+        }
+    )
+    for layer in layers
+}
 
-ds.push_to_hub(
-    repo_id=ARGS.dataset_name.replace("concepts", "activations"),
-)
+for layer_name, dataset in dataset_dict.items():
+    dataset.push_to_hub(
+        repo_id=ARGS.dataset_name.replace("concepts", "activations"),
+        config_name=layer_name,
+    )
