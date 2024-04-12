@@ -122,6 +122,7 @@ gen_dict = make_generators(
     layers=layers,
     splits=splits,
     make_gen_list=make_gen_list,
+    dataloaders=dataloaders,
 )
 ds = DatasetDict(
     {
