@@ -48,7 +48,7 @@ model.to(DEVICE)
 
 if ARGS.layers == "*":
     layers = [
-        str(i) for i in range(len(model.vision_model.config.num_hidden_layers))
+        str(i) for i in range(model.vision_model.config.num_hidden_layers)
     ]
 else:
     layers = ARGS.layers.split(",")
