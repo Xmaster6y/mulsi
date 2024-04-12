@@ -25,6 +25,22 @@
             "module": "scripts.contrast_reading",
             "console": "integratedTerminal",
             "justMyCode": false
+        },
+        {
+            "name": "Script Train CLF",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.train_clf",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Script Make Act Dataset",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.make_activation_dataset",
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }

@@ -1,10 +1,15 @@
 """Simple showcase of the contrast reading vectors.
+
+Run with:
+```
+poetry run python -m scripts.contrast_reading
+```
 """
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from mulsi import RepresentationReader, TdTokenizer
-from mulsi.wrapper import LlmWrapper
+from mulsi import ContrastReader, LlmWrapper, TdTokenizer
+from scripts.utils import viz
 
 ####################
 # HYPERPARAMETERS
@@ -14,9 +19,7 @@ pros_inputs = "I love this codebase"
 cons_inputs = "I hate this codebase"
 ####################
 
-love_reader = RepresentationReader.from_name(
-    "contrast", pros_inputs=pros_inputs, cons_inputs=cons_inputs
-)
+love_reader = ContrastReader(pros_inputs=pros_inputs, cons_inputs=cons_inputs)
 model = AutoModelForCausalLM.from_pretrained(model_name)
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 td_tokenizer = TdTokenizer(tokenizer)
@@ -27,16 +30,20 @@ love_reading_vector = love_reader.compute_reading_vector(wrapper=wrapper)
 sentences = [
     "I love this codebase",
     "I hate this codebase",
+    "I like this codebase",
+    "Doing XAI research is what I love",
+    "My girlfriend loves me",
     "I am neutral about this codebase",
     "I like eating ice cream",
     "When is the next train?",
 ]
+head_line = ("Sentence", "Cosine Similarity")
+table = []
 for sentence in sentences:
-    print(
-        sentence,
-        love_reader.read(
-            wrapper=wrapper,
-            inputs=sentence,
-            reading_vector=love_reading_vector,
-        ),
-    )
+    cosim = love_reader.read(
+        wrapper=wrapper,
+        inputs=sentence,
+        reading_vector=love_reading_vector,
+    ).item()
+    table.append((sentence, f"{cosim:.2f}"))
+viz.table_print(headings=head_line, table=table)

@@ -101,7 +101,6 @@ class Hook(ABC):
         Clears the storage.
         """
         self.storage.clear()
-        self.removable_handles.clear()
 
     @abstractmethod
     def forward_factory(self, name: str):

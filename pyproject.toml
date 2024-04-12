@@ -4,6 +4,7 @@ line-length = 79
 [tool.isort]
 profile = "black"
 line_length = 79
+src_paths = ["src", "tests", "scripts", "docs", "demo"]
 
 [tool.poetry]
 name = "mulsi"
@@ -32,6 +33,8 @@ tensordict = "^0.3.0"
 typeguard = "^4.1.5"
 einops = "^0.7.0"
 torchvision = "^0.17.0"
+datasets = {version = "^2.18.0", extras = ["scripts"]}
+wandb = {version = "^0.16.5", extras = ["scripts"]}
 
 [tool.poetry.group.dev]
 optional = true
@@ -46,4 +49,12 @@ gdown = "^5.1.0"
 optional = true
 
 [tool.poetry.group.demo.dependencies]
-gradio = "^4.14.0"
+gradio = {extras = ["oauth"], version = "^4.24.0"}
+jsonlines = "^4.0.0"
+
+[tool.poetry.group.scripts]
+optional = true
+
+[tool.poetry.group.scripts.dependencies]
+datasets = "^2.18.0"
+wandb = "^0.16.5"
