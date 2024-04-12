@@ -45,7 +45,13 @@ processor = CLIPProcessor.from_pretrained(ARGS.model_name)
 model = CLIPModel.from_pretrained(ARGS.model_name)
 model.eval()
 model.to(DEVICE)
-layers = ARGS.layers.split(",")
+
+if ARGS.layers == "*":
+    layers = [
+        str(i) for i in range(len(model.vision_model.config.num_hidden_layers))
+    ]
+else:
+    layers = ARGS.layers.split(",")
 
 if ARGS.download_dataset:
     hf_api.snapshot_download(
