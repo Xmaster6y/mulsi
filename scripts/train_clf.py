@@ -9,12 +9,12 @@ poetry run python -m scripts.train_clf
 import argparse
 
 import torch
+import wandb
 from datasets import Features, Image, Value, load_dataset
 from huggingface_hub import HfApi
 from torch.utils.data import DataLoader
 from transformers import CLIPModel, CLIPProcessor
 
-import wandb
 from scripts.constants import ASSETS_FOLDER, HF_TOKEN, WANDB_API_KEY
 from scripts.utils.clf import CLF
 

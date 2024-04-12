@@ -10,12 +10,12 @@ import argparse
 import re
 
 import torch
+import wandb
 from datasets import Dataset, DatasetDict, load_dataset
 from huggingface_hub import HfApi
 from torch.utils.data import DataLoader
 from transformers import CLIPModel, CLIPProcessor
 
-import wandb
 from mulsi.hook import CacheHook, HookConfig
 from scripts.constants import ASSETS_FOLDER, HF_TOKEN, WANDB_API_KEY
 from scripts.utils.dataset import make_generators
