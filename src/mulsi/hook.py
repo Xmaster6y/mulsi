@@ -133,12 +133,12 @@ class CacheHook(Hook):
         if self.config.hook_mode is HookMode.INPUT:
 
             def hook(module, input, output):
-                self.storage[name] = input.detach()
+                self.storage[name] = input
 
         elif self.config.hook_mode is HookMode.OUTPUT:
 
             def hook(module, input, output):
-                self.storage[name] = output.detach()
+                self.storage[name] = output
 
         else:
             raise ValueError(f"Unknown cache mode: {self.config.hook_mode}")

@@ -114,7 +114,7 @@ def make_gen_list(
                 m = module_exp.match(module)
                 layer = m.group("layer")
                 gen_dict[layer][split].append(
-                    make_batch_gen(batched_activations, ids)
+                    make_batch_gen(batched_activations[0].detach(), ids)
                 )
 
 
