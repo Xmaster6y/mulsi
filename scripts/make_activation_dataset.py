@@ -1,17 +1,16 @@
-"""Simple classifier training script.
+"""Script to make a dataset of activations from a CLIP model.
 
 Run with:
 ```
-poetry run python -m scripts.train_clf
+poetry run python -m scripts.make_activation_dataset
 ```
 """
 
 import argparse
-import pathlib
-import shutil
+import re
 
 import torch
-from datasets import Features, Image, Value, load_dataset
+from datasets import Dataset, DatasetDict, Features, Image, Value, load_dataset
 from huggingface_hub import HfApi
 from torch.utils.data import DataLoader
 from transformers import CLIPModel, CLIPProcessor
@@ -19,6 +18,7 @@ from transformers import CLIPModel, CLIPProcessor
 import wandb
 from mulsi.hook import CacheHook, HookConfig
 from scripts.constants import ASSETS_FOLDER, HF_TOKEN, WANDB_API_KEY
+from scripts.utils.dataset import make_generators
 
 ####################
 # HYPERPARAMETERS
@@ -32,8 +32,7 @@ parser.add_argument(
 )
 parser.add_argument("--download_dataset", action="store_true", default=False)
 parser.add_argument("--batch_size", type=int, default=64)
-parser.add_argument("--n_epochs", type=int, default=3)
-parser.add_argument("--lr", type=float, default=1e-5)
+parser.add_argument("--layers", type=str, default="0,6,12")
 ####################
 
 ARGS = parser.parse_args()
@@ -46,8 +45,7 @@ processor = CLIPProcessor.from_pretrained(ARGS.model_name)
 model = CLIPModel.from_pretrained(ARGS.model_name)
 model.eval()
 model.to(DEVICE)
-for param in model.parameters():
-    param.requires_grad = False
+layers = ARGS.layers.split(",")
 
 if ARGS.download_dataset:
     hf_api.snapshot_download(
@@ -76,33 +74,67 @@ dataloaders = {
     for split in splits
 }
 
-cache_hook = CacheHook(HookConfig(module_exp=r".*\.layers\.\d+$"))
-cache_hook.register(model.vision_model)
-with torch.no_grad():
+cache_hook = CacheHook(
+    HookConfig(module_exp=rf".*\.layers\.({'|'.join(layers)})$")
+)
+handles = cache_hook.register(model.vision_model)
+print(f"[INFO] Registered {len(handles)} hooks")
+
+
+def make_batch_gen(
+    batched_activations,
+    ids,
+):
+    def gen():
+        for activation, act_id in zip(batched_activations, ids):
+            yield {
+                "activation": activation.cpu().float().numpy(),
+                "id": act_id,
+            }
+
+    return gen
+
+
+@torch.no_grad
+def make_gen_list(
+    gen_dict,
+    dataloaders,
+):
+    module_exp = re.compile(r".*\.layers\.(?P<layer>\d+)$")
     for split, dataloader in dataloaders.items():
-        for i, batch in enumerate(dataloader):
+        for batch in dataloader:
             images, ids = batch
             image_inputs = processor(
                 images=images,
                 return_tensors="pt",
             )
             image_inputs = {k: v.to(DEVICE) for k, v in image_inputs.items()}
-            x = model.vision_model(**image_inputs)
-            for layer, batched_activations in cache_hook.storage.items():
-                folder = pathlib.Path(
-                    f"{ASSETS_FOLDER}/data/"
-                    f"{ARGS.model_name.replace('/', '.')}_{layer}/{split}"
+            model.vision_model(**image_inputs)
+            for module, batched_activations in cache_hook.storage.items():
+                m = module_exp.match(module)
+                layer = m.group("layer")
+                gen_dict[layer][split].append(
+                    make_batch_gen(batched_activations, ids)
                 )
-                folder.mkdir(parents=True, exist_ok=True)
-                for i in range(ARGS.batch_size):
-                    tensor = batched_activations[0][i]
-                    t_id = ids[i]
-                    torch.save(tensor, f"{folder}/{t_id}.pt")
 
-            hf_api.upload_folder(
-                folder_path=f"{ASSETS_FOLDER}/data",
-                path_in_repo="data",
-                repo_id=ARGS.dataset_name.replace("concepts", "activations"),
-                repo_type="dataset",
-            )
-            shutil.rmtree(f"{ASSETS_FOLDER}/data")
+
+gen_dict = make_generators(
+    layers=layers,
+    splits=splits,
+    make_gen_list=make_gen_list,
+)
+ds = DatasetDict(
+    {
+        f"layers.{layer}": DatasetDict(
+            {
+                split: Dataset.from_generator(gen_dict[layer][split])
+                for split in splits
+            }
+        )
+        for layer in layers
+    }
+)
+
+ds.push_to_hub(
+    repo_id=ARGS.dataset_name.replace("concepts", "activations"),
+)

@@ -101,7 +101,6 @@ class Hook(ABC):
         Clears the storage.
         """
         self.storage.clear()
-        self.removable_handles.clear()
 
     @abstractmethod
     def forward_factory(self, name: str):
@@ -134,12 +133,12 @@ class CacheHook(Hook):
         if self.config.hook_mode is HookMode.INPUT:
 
             def hook(module, input, output):
-                self.storage[name] = input
+                self.storage[name] = input.detach()
 
         elif self.config.hook_mode is HookMode.OUTPUT:
 
             def hook(module, input, output):
-                self.storage[name] = output
+                self.storage[name] = output.detach()
 
         else:
             raise ValueError(f"Unknown cache mode: {self.config.hook_mode}")
