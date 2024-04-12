@@ -10,7 +10,7 @@ import argparse
 import re
 
 import torch
-from datasets import Dataset, DatasetDict, Features, Image, Value, load_dataset
+from datasets import Dataset, DatasetDict, load_dataset
 from huggingface_hub import HfApi
 from torch.utils.data import DataLoader
 from transformers import CLIPModel, CLIPProcessor
@@ -53,15 +53,19 @@ if ARGS.download_dataset:
         repo_type="dataset",
         local_dir=f"{ASSETS_FOLDER}/{ARGS.dataset_name}",
     )
-features = Features({"image": Image(), "id": Value(dtype="string")})
-dataset = load_dataset(
-    f"{ASSETS_FOLDER}/{ARGS.dataset_name}", features=features
-)
+
+dataset = load_dataset(f"{ASSETS_FOLDER}/{ARGS.dataset_name}")
+print(f"[INFO] Loaded dataset: {dataset}")
 
 
 def collate_fn(batch):
-    images, ids = zip(*[(x["image"], x["id"]) for x in batch])
-    return images, ids
+    images = []
+    infos = []
+    for x in batch:
+        images.append(x.pop("image"))
+        x.pop("original_name")
+        infos.append(x)
+    return images, infos
 
 
 splits = ["train", "validation", "test"]
@@ -83,14 +87,11 @@ print(f"[INFO] Registered {len(handles)} hooks")
 
 def make_batch_gen(
     batched_activations,
-    ids,
+    infos,
 ):
     def gen():
-        for activation, act_id in zip(batched_activations, ids):
-            yield {
-                "activation": activation.cpu().float().numpy(),
-                "id": act_id,
-            }
+        for activation, info in zip(batched_activations, infos):
+            yield {"activation": activation.cpu().float().numpy(), **info}
 
     return gen
 
@@ -103,7 +104,7 @@ def make_gen_list(
     module_exp = re.compile(r".*\.layers\.(?P<layer>\d+)$")
     for split, dataloader in dataloaders.items():
         for batch in dataloader:
-            images, ids = batch
+            images, infos = batch
             image_inputs = processor(
                 images=images,
                 return_tensors="pt",
@@ -114,7 +115,7 @@ def make_gen_list(
                 m = module_exp.match(module)
                 layer = m.group("layer")
                 gen_dict[layer][split].append(
-                    make_batch_gen(batched_activations[0].detach(), ids)
+                    make_batch_gen(batched_activations[0].detach(), infos)
                 )
 
 
