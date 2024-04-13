@@ -17,10 +17,20 @@ def merge_gens(gens: List[Callable[[], Generator]]):
     return new_gen
 
 
-def make_generators(layers, splits, make_gen_list, **kwargs):
-    gen_dict = {layer: {split: [] for split in splits} for layer in layers}
+def make_generators(configs, splits, make_gen_list, **kwargs):
+    if configs is None:
+        gen_dict = {split: [] for split in splits}
+    else:
+        gen_dict = {
+            config: {split: [] for split in splits} for config in configs
+        }
     make_gen_list(gen_dict, **kwargs)
-    return {
-        layer: {split: merge_gens(gen_dict[layer][split]) for split in splits}
-        for layer in layers
-    }
+    if configs is None:
+        return {split: merge_gens(gen_dict[split]) for split in splits}
+    else:
+        return {
+            config: {
+                split: merge_gens(gen_dict[config][split]) for split in splits
+            }
+            for config in configs
+        }
