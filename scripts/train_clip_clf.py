@@ -113,7 +113,7 @@ with wandb.init(  # type: ignore
             image_inputs = {k: v.to(DEVICE) for k, v in image_inputs.items()}
             labels = torch.tensor(classes).to(DEVICE)
             optimizer.zero_grad()
-            output = model.vision_model(**image_inputs, labels=labels)
+            output = model(**image_inputs, labels=labels)
             loss = output["loss"]
             loss.backward()
             optimizer.step()
