@@ -117,7 +117,7 @@ with wandb.init(  # type: ignore
             loss = output["loss"]
             loss.backward()
             optimizer.step()
-            wandb.log({"train_loss": loss.item()})
+            wandb.log({"train/loss": loss.item()})
 
         model.eval()
         with torch.no_grad():
@@ -132,11 +132,11 @@ with wandb.init(  # type: ignore
                     k: v.to(DEVICE) for k, v in image_inputs.items()
                 }
                 labels = torch.tensor(classes).to(DEVICE)
-                output = model.vision_model(**image_inputs)
+                output = model.vision_model(**image_inputs, labels=labels)
                 loss = output["loss"]
                 val_loss += loss.item()
             val_loss /= len(val_dataloader)
-            wandb.log({"val_loss": val_loss})
+            wandb.log({"val/loss": val_loss})
 
 model.push_to_hub(
     ARGS.dataset_name.replace("concepts", ARGS.model_name.split("/")[-1]),
