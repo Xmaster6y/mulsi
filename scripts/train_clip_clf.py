@@ -13,7 +13,7 @@ import wandb
 from datasets import Features, Image, Value, load_dataset
 from huggingface_hub import HfApi
 from torch.utils.data import DataLoader
-from transformers import AutoConfig, CLIPModel, CLIPProcessor
+from transformers import AutoConfig, CLIPForImageClassification, CLIPProcessor
 
 from scripts.constants import ASSETS_FOLDER, HF_TOKEN, WANDB_API_KEY
 
@@ -63,7 +63,9 @@ config.id2label = {
 }
 config.num_labels = class_feature.num_classes
 
-model = CLIPModel.from_pretrained(ARGS.model_name, config=config)
+model = CLIPForImageClassification.from_pretrained(
+    ARGS.model_name, config=config
+)
 model.to(DEVICE)
 trainable_parameter_names = []
 for name, param in model.named_parameters():
