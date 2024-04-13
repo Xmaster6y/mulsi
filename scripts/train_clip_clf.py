@@ -65,11 +65,14 @@ config.num_labels = class_feature.num_classes
 
 model = CLIPModel.from_pretrained(ARGS.model_name, config=config)
 model.to(DEVICE)
-for param in model.parameters():
-    if "classifier" in param.name:
+trainable_parameter_names = []
+for name, param in model.named_parameters():
+    if "classifier" in name:
         param.requires_grad = True
+        trainable_parameter_names.append(name)
     else:
         param.requires_grad = False
+print(f"[INFO] Trainable parameters: {trainable_parameter_names}")
 
 
 def collate_fn(batch):
