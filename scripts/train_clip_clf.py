@@ -132,7 +132,7 @@ with wandb.init(  # type: ignore
                     k: v.to(DEVICE) for k, v in image_inputs.items()
                 }
                 labels = torch.tensor(classes).to(DEVICE)
-                output = model.vision_model(**image_inputs, labels=labels)
+                output = model(**image_inputs, labels=labels)
                 loss = output["loss"]
                 val_loss += loss.item()
             val_loss /= len(val_dataloader)
