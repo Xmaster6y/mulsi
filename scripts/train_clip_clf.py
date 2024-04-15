@@ -96,7 +96,8 @@ val_dataloader = DataLoader(
 )
 
 with wandb.init(  # type: ignore
-    project="mulsi-clf",
+    project="clip-clf",
+    entity="mulsi",
     config={
         **vars(ARGS),
     },
