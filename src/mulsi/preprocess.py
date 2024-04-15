@@ -12,7 +12,7 @@ from transformers import CLIPImageProcessor, PreTrainedTokenizer, image_utils
 
 
 @dataclass
-class DiffClipProcessor:
+class DiffCLIPImageProcessor:
     """Differentiable CLIP processor.
 
     TODO: Temporary solution. Should be inheriting from the processor.
@@ -43,9 +43,8 @@ class DiffClipProcessor:
         )
         return im_proc
 
-    def __call__(self, images, return_tensors="pt", padding=True):
-        if return_tensors != "pt":
-            raise NotImplementedError
+    def __call__(self, images, **kwargs):
+        kwargs["return_tensors"] = "pt"
         images = image_utils.make_list_of_images(images)
         return TensorDict(
             {"pixel_values": [self.preprocess(image) for image in images]},
@@ -69,3 +68,17 @@ class TdTokenizer:
             {k: v for k, v in inputs.items()},
             batch_size=inputs["input_ids"].shape[0],
         )
+
+
+@dataclass
+class DiffCLIPProcessor:
+    """Differentiable CLIP processor."""
+
+    image_processor: DiffCLIPImageProcessor
+    text_processor: TdTokenizer
+
+    def __call__(self, images, text=None, **kwargs):
+        outputs = TensorDict()
+        outputs.update(self.image_processor(images, **kwargs))
+        outputs.update(self.text_processor(text, **kwargs))
+        return outputs

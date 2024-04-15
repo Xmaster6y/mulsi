@@ -11,7 +11,7 @@ from transformers import (
     CLIPProcessor,
 )
 
-from mulsi import DiffClipProcessor, TdTokenizer
+from mulsi import DiffCLIPImageProcessor, TdTokenizer
 
 
 @pytest.fixture(scope="session")
@@ -38,7 +38,7 @@ def clip_model():
 @pytest.fixture(scope="session")
 def clip_processor():
     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-    clip_processor = DiffClipProcessor(processor.image_processor)
+    clip_processor = DiffCLIPImageProcessor(processor.image_processor)
     yield clip_processor
 
 
