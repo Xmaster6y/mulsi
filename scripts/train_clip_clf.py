@@ -142,3 +142,6 @@ with wandb.init(  # type: ignore
 model.push_to_hub(
     ARGS.dataset_name.replace("concepts", ARGS.model_name.split("/")[-1]),
 )
+processor.push_to_hub(
+    ARGS.dataset_name.replace("concepts", ARGS.model_name.split("/")[-1]),
+)
