@@ -8,7 +8,7 @@ src_paths = ["src", "tests", "scripts", "docs", "demo"]
 
 [tool.poetry]
 name = "mulsi"
-version = "0.1.1"
+version = "0.1.2"
 description = "Safe inference using representation engineering."
 readme = "README.md"
 license = "MIT"
