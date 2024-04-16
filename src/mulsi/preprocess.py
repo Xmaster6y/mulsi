@@ -22,9 +22,9 @@ class DiffCLIPImageProcessor:
 
     def preprocess(self, image):
         if isinstance(image, Image.Image):
-            image = pil_to_tensor(image).float()
-        if image.dim() != 3:
-            raise NotImplementedError
+            image = pil_to_tensor(image).float().unsqueeze(0)
+        if image.dim() == 3:
+            image = image.unsqueeze(0)
         if self.processor.resample != 3:
             raise NotImplementedError
         size = tuple(self.processor.crop_size.values())
@@ -38,8 +38,8 @@ class DiffCLIPImageProcessor:
         std = torch.Tensor(self.processor.image_std)
 
         im_proc = einops.rearrange(
-            (einops.rearrange(im_proc, "c h w -> h w c") - mean) / std,
-            "h w c -> c h w",
+            (einops.rearrange(im_proc, "b c h w -> b h w c") - mean) / std,
+            "b h w c -> b c h w",
         )
         return im_proc
 
