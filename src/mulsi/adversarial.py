@@ -162,7 +162,7 @@ class AdversarialImage:
             if use_sign:
                 self.delta.add_(grad_mul * self.delta.grad.sign())
             else:
-                self.delta.add_(grad_mul * self.delta.grad)
+                self.delta.add_(grad_mul * self.delta.grad.to(torch.uint8))
         self._ensure_valid_delta_(epsilon)
 
     def fgsm_iter_(
