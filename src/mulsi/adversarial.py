@@ -42,8 +42,8 @@ class CLIPClfLoss(Loss):
         labels = data.get("labels")
         if labels is None:
             raise ValueError("Labels must be provided.")
-        elif labels.ndim != 2:
-            raise ValueError("Labels must be 2D.")
+        elif labels.ndim != 1:
+            raise ValueError("Labels must be 1D.")
         encoded_inputs = self.image_processor(
             images=adv_image, return_tensors="pt"
         )
