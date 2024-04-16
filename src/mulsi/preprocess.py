@@ -48,16 +48,15 @@ class DiffCLIPImageProcessor:
         if isinstance(images, torch.Tensor):
             if images.dim() == 3:
                 images = images.unsqueeze(0)
+            return {"pixel_values": self.preprocess(images)}
         else:
             images = image_utils.make_list_of_images(images)
-        return TensorDict(
-            {
-                "pixel_values": [
-                    self.preprocess(image).squeeze(0) for image in images
-                ]
-            },
-            batch_size=len(images),
-        )
+            return {
+                "pixel_values": torch.cat(
+                    [self.preprocess(image) for image in images],
+                    dim=0,
+                )
+            }
 
 
 @dataclass
@@ -83,10 +82,10 @@ class DiffCLIPProcessor:
     """Differentiable CLIP processor."""
 
     image_processor: DiffCLIPImageProcessor
-    text_processor: TdTokenizer
+    text_processor: PreTrainedTokenizer
 
     def __call__(self, images, text=None, **kwargs):
-        outputs = TensorDict()
+        outputs = {}
         outputs.update(self.image_processor(images, **kwargs))
         outputs.update(self.text_processor(text, **kwargs))
         return outputs

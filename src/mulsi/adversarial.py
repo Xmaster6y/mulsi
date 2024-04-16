@@ -51,7 +51,7 @@ class CLIPClfLoss(Loss):
         logits = outputs.logits
         logits = logits.expand(labels.shape[0], -1)
         return torch.nn.functional.cross_entropy(
-            logits, data, reduction=self.reduction
+            logits, labels, reduction=self.reduction
         )
 
 
