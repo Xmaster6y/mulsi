@@ -45,7 +45,11 @@ class DiffCLIPImageProcessor:
 
     def __call__(self, images, **kwargs):
         kwargs["return_tensors"] = "pt"
-        images = image_utils.make_list_of_images(images)
+        if isinstance(images, torch.Tensor):
+            if images.dim() == 3:
+                images = images.unsqueeze(0)
+        else:
+            images = image_utils.make_list_of_images(images)
         return TensorDict(
             {"pixel_values": [self.preprocess(image) for image in images]},
             batch_size=len(images),
