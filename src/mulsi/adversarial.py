@@ -157,10 +157,11 @@ class AdversarialImage:
             total_loss += loss_coeff * loss(self.base_image + self.delta, data)
         total_loss.backward()
         grad_mul = alpha or epsilon
-        if use_sign:
-            self.delta.add_(grad_mul * self.delta.grad.sign())
-        else:
-            self.delta.add_(grad_mul * self.delta.grad)
+        with torch.no_grad():
+            if use_sign:
+                self.delta.add_(grad_mul * self.delta.grad.sign())
+            else:
+                self.delta.add_(grad_mul * self.delta.grad)
         self._ensure_valid_delta_(epsilon)
 
     def fgsm_iter_(
