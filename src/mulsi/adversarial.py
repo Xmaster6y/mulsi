@@ -2,9 +2,10 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import torch
+import tqdm
 from transformers import CLIPForImageClassification, CLIPModel
 
 from mulsi.preprocess import DiffCLIPImageProcessor, DiffCLIPProcessor
@@ -171,9 +172,12 @@ class AdversarialImage:
         n_iter: int,
         alpha: Optional[float] = None,
         use_sign: bool = True,
+        callback_fn: Optional[Callable] = None,
     ) -> None:
-        for _ in range(n_iter):
+        for _ in tqdm.tqdm(range(n_iter)):
             self.fgsm_(epsilon, input_list, alpha, use_sign)
+            if callback_fn is not None:
+                callback_fn(self.adv)
 
     @torch.no_grad
     def _ensure_valid_delta_(self, epsilon: int) -> None:
