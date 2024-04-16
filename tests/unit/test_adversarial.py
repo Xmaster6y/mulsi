@@ -11,7 +11,7 @@ class TestFgsm:
         """
         Test the fgsm attack.
         """
-        base_image = torch.zeros(1, 3, 224, 224, dtype=torch.int)
+        base_image = torch.zeros(1, 3, 224, 224, dtype=torch.uint8)
         adv_image = AdversarialImage(base_image)
         adv = adv_image.adv
         assert torch.allclose(adv, base_image)

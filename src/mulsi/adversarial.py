@@ -45,7 +45,7 @@ class CLIPClfLoss(Loss):
         elif labels.ndim != 2:
             raise ValueError("Labels must be 2D.")
         encoded_inputs = self.image_processor(
-            images=adv_image.unsqueeze(0), return_tensors="pt"
+            images=adv_image, return_tensors="pt"
         )
         outputs = self.model(**encoded_inputs)
         logits = outputs.logits
@@ -75,7 +75,7 @@ class CLIPContrastiveLoss(Loss):
         if text is None:
             raise ValueError("Text must be provided.")
         encoded_inputs = self.processor(
-            images=adv_image.unsqueeze(0), text=text, return_tensors="pt"
+            images=adv_image, text=text, return_tensors="pt"
         )
         outputs = self.model(**encoded_inputs, return_loss=True)
         return outputs.loss
@@ -105,9 +105,7 @@ class CLIPEmbedsLoss(Loss):
     ) -> torch.Tensor:
         images = data.get("images")
         text = data.get("text")
-        encoded_inputs = self.processor(
-            images=adv_image.unsqueeze(0), return_tensors="pt"
-        )
+        encoded_inputs = self.processor(images=adv_image, return_tensors="pt")
         outputs = self.model(**encoded_inputs)
         adv_embeds = outputs.image_embeds
         encoded_inputs = self.processor(
@@ -144,7 +142,7 @@ class AdversarialImage:
     @property
     def adv(self) -> torch.Tensor:
         _adv = self.base_image + self.delta
-        return _adv.detach().int()
+        return _adv.detach().to(torch.uint8)
 
     def fgsm_(
         self,
