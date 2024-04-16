@@ -23,8 +23,8 @@ class DiffCLIPImageProcessor:
     def preprocess(self, image) -> torch.Tensor:
         if isinstance(image, Image.Image):
             image = pil_to_tensor(image).float().unsqueeze(0)
-        if image.dim() != 4:
-            raise NotImplementedError
+        if image.dim() == 3:
+            image = image.unsqueeze(0)
         if self.processor.resample != 3:
             raise NotImplementedError
         size = tuple(self.processor.crop_size.values())
