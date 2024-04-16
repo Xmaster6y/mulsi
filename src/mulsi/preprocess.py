@@ -20,11 +20,11 @@ class DiffCLIPImageProcessor:
 
     processor: CLIPImageProcessor
 
-    def preprocess(self, image):
+    def preprocess(self, image) -> torch.Tensor:
         if isinstance(image, Image.Image):
             image = pil_to_tensor(image).float().unsqueeze(0)
-        if image.dim() == 3:
-            image = image.unsqueeze(0)
+        if image.dim() != 4:
+            raise NotImplementedError
         if self.processor.resample != 3:
             raise NotImplementedError
         size = tuple(self.processor.crop_size.values())
@@ -51,7 +51,11 @@ class DiffCLIPImageProcessor:
         else:
             images = image_utils.make_list_of_images(images)
         return TensorDict(
-            {"pixel_values": [self.preprocess(image) for image in images]},
+            {
+                "pixel_values": [
+                    self.preprocess(image).squeeze(0) for image in images
+                ]
+            },
             batch_size=len(images),
         )
 
