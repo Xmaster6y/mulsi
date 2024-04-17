@@ -56,7 +56,8 @@ def gen_pooler_from_model(
         image_inputs = {k: v.to(DEVICE) for k, v in image_inputs.items()}
         out = model(**image_inputs)
         gen_list.append(make_batch_gen(out.pooler_output, infos))
-    return merge_gens(gen_list)
+    full_gen = merge_gens(gen_list)
+    yield from full_gen()
 
 
 def main(args: argparse.Namespace):
