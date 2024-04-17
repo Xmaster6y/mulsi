@@ -1,3 +1,16 @@
+# Package
+.PHONY: install
+install:
+	poetry install
+
+.PHONY: install-dev
+install-dev:
+	poetry install --with dev
+
+.PHONY: install-demo
+install-demo:
+	poetry install --with demo
+
 # CI
 .PHONY: checks
 checks:
