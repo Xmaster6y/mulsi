@@ -35,6 +35,8 @@ einops = "^0.7.0"
 torchvision = "^0.17.0"
 datasets = {version = "^2.18.0", extras = ["scripts"]}
 wandb = {version = "^0.16.5", extras = ["scripts"]}
+scikit-learn = "^1.4.2"
+loguru = "^0.7.2"
 
 [tool.poetry.group.dev]
 optional = true
