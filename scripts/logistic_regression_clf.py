@@ -35,7 +35,7 @@ def parse_args() -> argparse.Namespace:
         "--dataset_name", type=str, default="mulsi/fruit-vegetable-pooler"
     )
     parser.add_argument("--max_iter", type=int, default=300)
-    parser.add_argument("--output_dir", type=str, default="outputs")
+    parser.add_argument("--output_dir", type=str, default="assets")
     return parser.parse_args()
 
 
