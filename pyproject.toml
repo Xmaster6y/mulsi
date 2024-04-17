@@ -59,3 +59,4 @@ optional = true
 datasets = "^2.18.0"
 wandb = "^0.16.5"
 loguru = "^0.7.2"
+scikit-learn = "^1.4.2"
