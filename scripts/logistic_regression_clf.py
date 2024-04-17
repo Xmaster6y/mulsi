@@ -15,7 +15,7 @@ def main(args):
     dataset = load_dataset(args.dataset_name)
     dataset = dataset.class_encode_column("class")
 
-    train_ds = concatenate_datasets([dataset["train"], dataset["validation"]]) 
+    train_ds = concatenate_datasets([dataset["train"], dataset["validation"]])
     test_ds = dataset["test"]
     logger.info(f"Train shape: {train_ds.shape}, Test shape: {test_ds.shape}")
 
@@ -25,15 +25,12 @@ def main(args):
     lr_clf = GridSearchCV(lr, parameters)
 
     logger.info(f"Train LR classifier")
-    pipe = Pipeline([
-        ('center', StandardScaler()),
-        ("classify", lr_clf)
-    ])
+    pipe = Pipeline([("center", StandardScaler()), ("classify", lr_clf)])
     pipe.fit(X=train_ds["pooler"], y=train_ds["class"])
-    
+
     score = pipe.score(X=train_ds["pooler"], y=train_ds["class"])
     logger.info(f"Accuracy score in train set: {score}")
-    
+
     score = pipe.score(X=test_ds["pooler"], y=test_ds["class"])
     logger.info(f"Accuracy score in test set: {score}")
 
