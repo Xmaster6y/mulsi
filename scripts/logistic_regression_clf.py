@@ -2,9 +2,12 @@ import argparse
 import os
 
 import joblib
-from datasets import load_dataset
+from datasets import concatenate_datasets, load_dataset
 from loguru import logger
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 
 def main(args):
@@ -12,24 +15,32 @@ def main(args):
     dataset = load_dataset(args.dataset_name)
     dataset = dataset.class_encode_column("class")
 
-    train_ds = concatenate_datasets(dataset["train"],dataset["validation"]) 
+    train_ds = concatenate_datasets([dataset["train"], dataset["validation"]]) 
     test_ds = dataset["test"]
     logger.info(f"Train shape: {train_ds.shape}, Test shape: {test_ds.shape}")
 
-    logger.info(f"Train LR classifier for max {args.max_iter} iterations")
-    lr_clf = LogisticRegression(max_iter=args.max_iter)
-    lr_clf.fit(X=train_ds["pooler"], y=train_ds["class"])
+    logger.info(f"Grid Search for LR classifier")
+    parameters = {"max_iter": [100, 500]}
+    lr = LogisticRegression()
+    lr_clf = GridSearchCV(lr, parameters)
+
+    logger.info(f"Train LR classifier")
+    pipe = Pipeline([
+        ('center', StandardScaler()),
+        ("classify", lr_clf)
+    ])
+    pipe.fit(X=train_ds["pooler"], y=train_ds["class"])
     
-    score = lr_clf.score(X=train_ds["pooler"], y=train_ds["class"])
+    score = pipe.score(X=train_ds["pooler"], y=train_ds["class"])
     logger.info(f"Accuracy score in train set: {score}")
     
-    score = lr_clf.score(X=test_ds["pooler"], y=test_ds["class"])
+    score = pipe.score(X=test_ds["pooler"], y=test_ds["class"])
     logger.info(f"Accuracy score in test set: {score}")
 
     logger.info(f"Save model to {args.output_dir}")
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
-    joblib.dump(lr_clf, os.path.join(args.output_dir, "lr_clf.joblib"))
+    joblib.dump(pipe, os.path.join(args.output_dir, "lr_clf.joblib"))
 
 
 def parse_args() -> argparse.Namespace:
