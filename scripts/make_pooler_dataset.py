@@ -15,6 +15,7 @@ from torch.utils.data import DataLoader
 from transformers import CLIPImageProcessor, CLIPVisionModel
 
 from scripts.constants import HF_TOKEN
+from scripts.utils.dataset import merge_gens
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -34,7 +35,7 @@ def make_batch_gen(
 ):
     def gen():
         for pooler, info in zip(batched_pooler, infos):
-            yield {"pooler": pooler.detach().float().numpy(), **info}
+            yield {"pooler": pooler.cpu().float().numpy(), **info}
 
     return gen
 
@@ -45,6 +46,7 @@ def gen_pooler_from_model(
     model,
     dataloader,
 ):
+    gen_list = []
     for batch in dataloader:
         images, infos = batch
         image_inputs = processor(
@@ -53,7 +55,8 @@ def gen_pooler_from_model(
         )
         image_inputs = {k: v.to(DEVICE) for k, v in image_inputs.items()}
         out = model(**image_inputs)
-        yield out["pooler_output"].cpu().float().numpy(), infos
+        gen_list.append(make_batch_gen(out.pooler_output, infos))
+    return merge_gens(gen_list)
 
 
 def main(args: argparse.Namespace):
