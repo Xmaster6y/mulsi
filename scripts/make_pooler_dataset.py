@@ -7,21 +7,14 @@ poetry run python -m scripts.make_pooler_dataset
 """
 
 import argparse
-import logging
-import sys
 
 import torch
 from datasets import Dataset, DatasetDict, load_dataset
+from loguru import logger
 from torch.utils.data import DataLoader
 from transformers import CLIPImageProcessor, CLIPVisionModel
 
 from scripts.constants import HF_TOKEN
-
-logging.basicConfig(
-    stream=sys.stdout,
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -60,11 +53,11 @@ def gen_pooler_from_model(
         )
         image_inputs = {k: v.to(DEVICE) for k, v in image_inputs.items()}
         out = model(**image_inputs)
-        yield out["pooler_output"].detach().float().numpy(), infos
+        yield out["pooler_output"].cpu().float().numpy(), infos
 
 
 def main(args: argparse.Namespace):
-    logging.info(f"Running on {DEVICE}")
+    logger.info(f"Running on {DEVICE}")
 
     processor = CLIPImageProcessor.from_pretrained(args.model_name)
     model = CLIPVisionModel.from_pretrained(args.model_name)
@@ -72,7 +65,7 @@ def main(args: argparse.Namespace):
     model.to(DEVICE)
 
     dataset = load_dataset(args.dataset_name, revision="refs/convert/parquet")
-    logging.info(f"Loaded dataset: {dataset}")
+    logger.info(f"Loaded dataset: {dataset}")
 
     splits = ["train", "validation", "test"]
     dataloaders = {
@@ -108,7 +101,7 @@ def main(args: argparse.Namespace):
                 token=HF_TOKEN,
             )
         else:
-            logging.info(f"Dataset {config_name}: {dataset}")
+            logger.info(f"Dataset {config_name}: {dataset}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -127,7 +120,7 @@ def parse_args() -> argparse.Namespace:
         default="mulsi/fruit-vegetable-pooler",
     )
     parser.add_argument(
-        "--push_to_hub", argparse.BooleanOptionalAction, default=False
+        "--push_to_hub", action=argparse.BooleanOptionalAction, default=False
     )
     parser.add_argument("--batch_size", type=int, default=64)
     return parser.parse_args()

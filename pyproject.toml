@@ -58,3 +58,4 @@ optional = true
 [tool.poetry.group.scripts.dependencies]
 datasets = "^2.18.0"
 wandb = "^0.16.5"
+loguru = "^0.7.2"
