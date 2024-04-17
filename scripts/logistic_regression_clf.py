@@ -19,12 +19,12 @@ def main(args):
     test_ds = dataset["test"]
     logger.info(f"Train shape: {train_ds.shape}, Test shape: {test_ds.shape}")
 
-    logger.info(f"Grid Search for LR classifier")
+    logger.info("Grid Search for LR classifier")
     parameters = {"max_iter": [100, 500]}
     lr = LogisticRegression()
     lr_clf = GridSearchCV(lr, parameters)
 
-    logger.info(f"Train LR classifier")
+    logger.info("Train LR classifier")
     pipe = Pipeline([("center", StandardScaler()), ("classify", lr_clf)])
     pipe.fit(X=train_ds["pooler"], y=train_ds["class"])
 
