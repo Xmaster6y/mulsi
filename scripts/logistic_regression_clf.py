@@ -19,7 +19,10 @@ def main(args):
     logger.info(f"Train LR classifier for max {args.max_iter} iterations")
     lr_clf = LogisticRegression(max_iter=args.max_iter)
     lr_clf.fit(X=train_ds["pooler"], y=train_ds["class"])
-
+    
+    score = lr_clf.score(X=train_ds["pooler"], y=train_ds["class"])
+    logger.info(f"Accuracy score in train set: {score}")
+    
     score = lr_clf.score(X=test_ds["pooler"], y=test_ds["class"])
     logger.info(f"Accuracy score in test set: {score}")
 
