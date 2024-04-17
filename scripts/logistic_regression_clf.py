@@ -12,7 +12,7 @@ def main(args):
     dataset = load_dataset(args.dataset_name)
     dataset = dataset.class_encode_column("class")
 
-    train_ds = dataset["train"]
+    train_ds = concatenate_datasets(dataset["train"],dataset["validation"]) 
     test_ds = dataset["test"]
     logger.info(f"Train shape: {train_ds.shape}, Test shape: {test_ds.shape}")
 
