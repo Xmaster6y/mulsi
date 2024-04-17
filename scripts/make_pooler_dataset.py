@@ -127,9 +127,6 @@ def parse_args() -> argparse.Namespace:
         default="mulsi/fruit-vegetable-pooler",
     )
     parser.add_argument(
-        "--download_dataset", argparse.BooleanOptionalAction, default=False
-    )
-    parser.add_argument(
         "--push_to_hub", argparse.BooleanOptionalAction, default=False
     )
     parser.add_argument("--batch_size", type=int, default=64)
