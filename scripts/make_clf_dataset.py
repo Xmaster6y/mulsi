@@ -137,7 +137,10 @@ def parse_args() -> argparse.Namespace:
         default="mulsi/fruit-vegetable-outputs",
     )
     parser.add_argument(
-        "--output_mode", type=str, default="pooler", choices=["pooler"]
+        "--output_mode",
+        type=str,
+        default="pooler",
+        choices=["pooler", "embeds", "mean_pooling"],
     )
     parser.add_argument(
         "--push_to_hub", action=argparse.BooleanOptionalAction, default=False
