@@ -1,8 +1,8 @@
-"""Script to make a dataset of pooler outputs from a CLIP vision model.
+"""Script to make a dataset of different outputs from a CLIP vision model.
 
 Run with:
 ```
-poetry run python -m scripts.make_pooler_dataset
+poetry run python -m scripts.make_clf_dataset
 ```
 """
 
@@ -12,7 +12,11 @@ import torch
 from datasets import Dataset, DatasetDict, load_dataset
 from loguru import logger
 from torch.utils.data import DataLoader
-from transformers import CLIPImageProcessor, CLIPVisionModel
+from transformers import (
+    CLIPImageProcessor,
+    CLIPVisionModel,
+    CLIPVisionModelWithProjection,
+)
 
 from scripts.constants import HF_TOKEN
 from scripts.utils.dataset import merge_gens
@@ -30,21 +34,22 @@ def collate_fn(batch):
 
 
 def make_batch_gen(
-    batched_pooler,
+    batched_output,
     infos,
 ):
     def gen():
-        for pooler, info in zip(batched_pooler, infos):
-            yield {"pooler": pooler.cpu().float().numpy(), **info}
+        for output, info in zip(batched_output, infos):
+            yield {"output": output.cpu().float().numpy(), **info}
 
     return gen
 
 
 @torch.no_grad
-def gen_pooler_from_model(
+def gen_output_from_model(
     processor,
     model,
     dataloader,
+    output_mode,
 ):
     gen_list = []
     for batch in dataloader:
@@ -55,7 +60,15 @@ def gen_pooler_from_model(
         )
         image_inputs = {k: v.to(DEVICE) for k, v in image_inputs.items()}
         out = model(**image_inputs)
-        gen_list.append(make_batch_gen(out.pooler_output, infos))
+        if output_mode == "pooler":
+            output = out.pooler_output
+        elif output_mode == "embeds":
+            output = out.image_embeds
+        elif output_mode == "mean_pooling":
+            output = out.last_hidden_state[:, 1:].mean(dim=1)
+        else:
+            raise ValueError(f"Invalid output mode: {output_mode}")
+        gen_list.append(make_batch_gen(output, infos))
     full_gen = merge_gens(gen_list)
     yield from full_gen()
 
@@ -64,7 +77,10 @@ def main(args: argparse.Namespace):
     logger.info(f"Running on {DEVICE}")
 
     processor = CLIPImageProcessor.from_pretrained(args.model_name)
-    model = CLIPVisionModel.from_pretrained(args.model_name)
+    if args.output_mode == "embeds":
+        model = CLIPVisionModelWithProjection.from_pretrained(args.model_name)
+    else:
+        model = CLIPVisionModel.from_pretrained(args.model_name)
     model.eval()
     model.to(DEVICE)
 
@@ -81,35 +97,32 @@ def main(args: argparse.Namespace):
         for split in splits
     }
 
-    dataset_dict = {
-        "pooler_output": DatasetDict(
-            {
-                split: Dataset.from_generator(
-                    gen_pooler_from_model,
-                    gen_kwargs={
-                        "processor": processor,
-                        "model": model,
-                        "dataloader": dataloaders[split],
-                    },
-                )
-                for split in splits
-            }
-        )
-    }
-
-    for config_name, dataset in dataset_dict.items():
-        if args.push_to_hub:
-            dataset.push_to_hub(
-                repo_id=args.output_dataset_name,
-                config_name=config_name,
-                token=HF_TOKEN,
+    dataset_dict = DatasetDict(
+        {
+            split: Dataset.from_generator(
+                gen_output_from_model,
+                gen_kwargs={
+                    "processor": processor,
+                    "model": model,
+                    "dataloader": dataloaders[split],
+                    "output_mode": args.output_mode,
+                },
             )
-        else:
-            logger.info(f"Dataset {config_name}: {dataset}")
+            for split in splits
+        }
+    )
+    if args.push_to_hub:
+        dataset_dict.push_to_hub(
+            repo_id=args.output_dataset_name,
+            config_name=args.output_mode,
+            token=HF_TOKEN,
+        )
+    else:
+        logger.info(f"Dataset {args.output_mode}: {dataset}")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser("train-clf")
+    parser = argparse.ArgumentParser("make-clf-dataset")
     parser.add_argument(
         "--model_name", type=str, default="openai/clip-vit-base-patch32"
     )
@@ -121,7 +134,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output_dataset_name",
         type=str,
-        default="mulsi/fruit-vegetable-pooler",
+        default="mulsi/fruit-vegetable-outputs",
+    )
+    parser.add_argument(
+        "--output_mode",
+        type=str,
+        default="pooler",
+        choices=["pooler", "embeds", "mean_pooling"],
     )
     parser.add_argument(
         "--push_to_hub", action=argparse.BooleanOptionalAction, default=False
