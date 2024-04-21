@@ -51,6 +51,7 @@ optional = true
 [tool.poetry.group.demo.dependencies]
 gradio = {extras = ["oauth"], version = "^4.24.0"}
 jsonlines = "^4.0.0"
+huggingface-hub = {extras = ["cli"], version = "^0.22.2"}
 
 [tool.poetry.group.scripts]
 optional = true
