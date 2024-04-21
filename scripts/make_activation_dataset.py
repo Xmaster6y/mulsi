@@ -31,7 +31,7 @@ parser.add_argument(
     "--dataset_name", type=str, default="mulsi/fruit-vegetable-concepts"
 )
 parser.add_argument(
-    "--download_dataset", argparse.BooleanOptionalAction, default=False
+    "--download_dataset", action=argparse.BooleanOptionalAction, default=False
 )
 parser.add_argument("--batch_size", type=int, default=64)
 parser.add_argument("--layers", type=str, default="0,6,11")
