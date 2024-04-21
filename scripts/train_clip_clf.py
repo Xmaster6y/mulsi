@@ -44,6 +44,7 @@ def main(args):
     model = CLIPForImageClassification.from_pretrained(
         args.model_name, config=config
     )
+    model.classifier.weight.data.normal_(mean=0.0, std=0.02)
     model.to(DEVICE)
     trainable_parameter_names = []
     for name, param in model.named_parameters():
