@@ -44,6 +44,7 @@ pre-commit = "*"
 pytest = "*"
 pytest-cov = "*"
 gdown = "^5.1.0"
+scikit-learn = "^1.4.2"
 
 [tool.poetry.group.demo]
 optional = true
