@@ -28,9 +28,11 @@ parser.add_argument(
     "--model_name", type=str, default="openai/clip-vit-base-patch32"
 )
 parser.add_argument(
-    "--dataset_name", type=str, default="Xmaster6y/fruit-vegetable-concepts"
+    "--dataset_name", type=str, default="mulsi/fruit-vegetable-concepts"
 )
-parser.add_argument("--download_dataset", action="store_true", default=False)
+parser.add_argument(
+    "--download_dataset", argparse.BooleanOptionalAction, default=False
+)
 parser.add_argument("--batch_size", type=int, default=64)
 parser.add_argument("--layers", type=str, default="0,6,11")
 ####################
