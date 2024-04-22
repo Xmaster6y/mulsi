@@ -6,8 +6,9 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import torch
 import tqdm
-from transformers import CLIPForImageClassification, CLIPModel
+from transformers import CLIPForImageClassification, CLIPModel, CLIPVisionModel
 
+from mulsi.clf import CLF
 from mulsi.preprocess import DiffCLIPImageProcessor, DiffCLIPProcessor
 
 
@@ -50,6 +51,42 @@ class CLIPClfLoss(Loss):
         )
         outputs = self.model(**encoded_inputs)
         logits = outputs.logits
+        logits = logits.expand(labels.shape[0], -1)
+        return torch.nn.functional.cross_entropy(
+            logits, labels, reduction=self.reduction
+        )
+
+
+class LRClfLoss(Loss):
+    """Class for computing the LR classifier loss."""
+
+    def __init__(
+        self,
+        base_model: CLIPVisionModel,
+        clf_model: CLF,
+        image_processor: DiffCLIPImageProcessor,
+        reduction: str = "mean",
+    ) -> None:
+        super().__init__()
+        self.base_model = base_model
+        self.clf_model = clf_model
+        self.image_processor = image_processor
+        self.reduction = reduction
+
+    def forward(
+        self, adv_image: torch.Tensor, data: Dict[str, Any]
+    ) -> torch.Tensor:
+        labels = data.get("labels")
+        if labels is None:
+            raise ValueError("Labels must be provided.")
+        elif labels.ndim != 1:
+            raise ValueError("Labels must be 1D.")
+        encoded_inputs = self.image_processor(
+            images=adv_image, return_tensors="pt"
+        )
+        outputs = self.base_model(**encoded_inputs)
+        pooler = outputs.pooler_output
+        logits = self.clf_model(pooler)
         logits = logits.expand(labels.shape[0], -1)
         return torch.nn.functional.cross_entropy(
             logits, labels, reduction=self.reduction
