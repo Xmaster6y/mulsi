@@ -63,7 +63,7 @@ def main(args):
         hfapi.upload_file(
             repo_id="mulsi/fruit-vegetable-clfs",
             path_or_fileobj=ASSETS_FOLDER / "clf.pt",
-            path_in_repo=f"{args.dataset_name}/clf.pt",
+            path_in_repo=f"{args.dataset_name}/{args.config_name}/clf.pt",
             token=HF_TOKEN,
         )
 
