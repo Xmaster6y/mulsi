@@ -23,7 +23,7 @@ from scripts.constants import ASSETS_FOLDER, HF_TOKEN
 
 def main(args):
     logger.info(f"Load dataset from {args.dataset_name}")
-    dataset = load_dataset(args.dataset_name)
+    dataset = load_dataset(args.dataset_name, args.config_name)
     dataset = dataset.class_encode_column("class")
 
     train_ds = concatenate_datasets([dataset["train"], dataset["validation"]])
@@ -71,8 +71,9 @@ def main(args):
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--dataset_name", type=str, default="mulsi/fruit-vegetable-pooler"
+        "--dataset_name", type=str, default="mulsi/fruit-vegetable-outputs"
     )
+    parser.add_argument("--config_name", type=str, default="pooler")
     parser.add_argument(
         "--push_to_hub", action=argparse.BooleanOptionalAction, default=False
     )
