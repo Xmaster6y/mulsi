@@ -38,8 +38,7 @@ def clip_model():
 @pytest.fixture(scope="session")
 def clip_processor():
     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-    clip_processor = DiffCLIPImageProcessor(processor.image_processor)
-    yield clip_processor
+    yield DiffCLIPImageProcessor(processor.image_processor)
 
 
 @pytest.fixture(scope="session")
