@@ -28,7 +28,6 @@ def collate_fn(batch):
     images, infos = [], []
     for x in batch:
         images.append(x.pop("image"))
-        x.pop("original_name")
         infos.append(x)
     return images, infos
 
