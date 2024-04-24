@@ -19,28 +19,9 @@ from transformers import (
 )
 
 from scripts.constants import HF_TOKEN
-from scripts.utils.dataset import merge_gens
+from scripts.utils.dataset import collate_fn, make_batch_gen, merge_gens
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-
-
-def collate_fn(batch):
-    images, infos = [], []
-    for x in batch:
-        images.append(x.pop("image"))
-        infos.append(x)
-    return images, infos
-
-
-def make_batch_gen(
-    batched_output,
-    infos,
-):
-    def gen():
-        for output, info in zip(batched_output, infos):
-            yield {"output": output.cpu().float().numpy(), **info}
-
-    return gen
 
 
 @torch.no_grad
@@ -67,7 +48,7 @@ def gen_output_from_model(
             output = out.last_hidden_state[:, 1:].mean(dim=1)
         else:
             raise ValueError(f"Invalid output mode: {output_mode}")
-        gen_list.append(make_batch_gen(output, infos))
+        gen_list.append(make_batch_gen(output, infos, "output"))
     full_gen = merge_gens(gen_list)
     yield from full_gen()
 
@@ -112,12 +93,12 @@ def main(args: argparse.Namespace):
     )
     if args.push_to_hub:
         dataset_dict.push_to_hub(
-            repo_id=args.output_dataset_name,
+            repo_id=args.dataset_name.replace("concepts", "ouputs"),
             config_name=args.output_mode,
             token=HF_TOKEN,
         )
     else:
-        logger.info(f"Dataset {args.output_mode}: {dataset}")
+        logger.info(f"Dataset {args.output_mode}: {dataset_dict}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -129,11 +110,6 @@ def parse_args() -> argparse.Namespace:
         "--dataset_name",
         type=str,
         default="mulsi/fruit-vegetable-concepts",
-    )
-    parser.add_argument(
-        "--output_dataset_name",
-        type=str,
-        default="mulsi/fruit-vegetable-outputs",
     )
     parser.add_argument(
         "--output_mode",

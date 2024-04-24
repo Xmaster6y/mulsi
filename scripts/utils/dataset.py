@@ -4,9 +4,25 @@
 from typing import Callable, Generator, List
 
 
+def collate_fn(batch):
+    images, infos = [], []
+    for x in batch:
+        images.append(x.pop("image"))
+        infos.append(x)
+    return images, infos
+
+
 def empty_gen():
     return
     yield
+
+
+def make_batch_gen(batch, infos, out_name):
+    def gen():
+        for tensor, info in zip(batch, infos):
+            yield {out_name: tensor.cpu().float().numpy(), **info}
+
+    return gen
 
 
 def merge_gens(gens: List[Callable[[], Generator]]):
