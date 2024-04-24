@@ -2,7 +2,7 @@
 
 Run with:
 ```
-poetry run python -m scripts.logistic_regression_clf
+poetry run python -m scripts.train_lr_clf
 ```
 """
 
@@ -23,7 +23,7 @@ from scripts.constants import ASSETS_FOLDER, HF_TOKEN
 
 def main(args):
     logger.info(f"Load dataset from {args.dataset_name}")
-    dataset = load_dataset(args.dataset_name)
+    dataset = load_dataset(args.dataset_name, args.config_name)
     dataset = dataset.class_encode_column("class")
 
     train_ds = dataset["train"]
@@ -36,16 +36,18 @@ def main(args):
     )
     parameters = {"clf__max_iter": [200, 500], "clf__C": [1e-1, 1, 10]}
     sss = StratifiedShuffleSplit(n_splits=5, test_size=0.4, random_state=0)
-    gs = GridSearchCV(pipe_clf, parameters, scoring="f1", cv=sss, n_jobs=-1)
+    gs = GridSearchCV(
+        pipe_clf, parameters, scoring="f1_micro", cv=sss, n_jobs=-1
+    )
 
     logger.info("Train LR classifier")
-    gs.fit(X=train_ds["pooler"], y=train_ds["class"])
+    gs.fit(X=train_ds["output"], y=train_ds["class"])
     logger.info(f"CV results: {gs.cv_results_}")
     best_clf = gs.best_estimator_
-    score = best_clf.score(X=train_ds["pooler"], y=train_ds["class"])
+    score = best_clf.score(X=train_ds["output"], y=train_ds["class"])
     logger.info(f"Accuracy score in train set: {score}")
 
-    score = best_clf.score(X=test_ds["pooler"], y=test_ds["class"])
+    score = best_clf.score(X=test_ds["output"], y=test_ds["class"])
     logger.info(f"Accuracy score in test set: {score}")
 
     logger.info(f"Save model to {ASSETS_FOLDER}")
@@ -61,7 +63,7 @@ def main(args):
         hfapi.upload_file(
             repo_id="mulsi/fruit-vegetable-clfs",
             path_or_fileobj=ASSETS_FOLDER / "clf.pt",
-            path_in_repo=f"{args.dataset_name}/clf.pt",
+            path_in_repo=f"{args.dataset_name}/{args.config_name}/clf.pt",
             token=HF_TOKEN,
         )
 
@@ -69,8 +71,9 @@ def main(args):
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--dataset_name", type=str, default="mulsi/fruit-vegetable-pooler"
+        "--dataset_name", type=str, default="mulsi/fruit-vegetable-outputs"
     )
+    parser.add_argument("--config_name", type=str, default="pooler")
     parser.add_argument(
         "--push_to_hub", action=argparse.BooleanOptionalAction, default=False
     )

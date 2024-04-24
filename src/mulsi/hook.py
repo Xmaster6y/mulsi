@@ -161,7 +161,7 @@ class MeasureHook(Hook):
             def hook(module, input, output):
                 measure_data = self._get_data(name)
                 self.storage[name] = self.config.data_fn(
-                    input, measure_data=measure_data
+                    input, measure_data=measure_data, name=name
                 )
 
         elif self.config.hook_mode is HookMode.OUTPUT:
@@ -169,7 +169,7 @@ class MeasureHook(Hook):
             def hook(module, input, output):
                 measure_data = self._get_data(name)
                 self.storage[name] = self.config.data_fn(
-                    output, measure_data=measure_data
+                    output, measure_data=measure_data, name=name
                 )
 
         else:
@@ -193,7 +193,7 @@ class ModifyHook(Hook):
             def hook(module, input, output):
                 modify_data = self._get_data(name)
                 self.storage[name] = self.config.data_fn(
-                    input, modify_data=modify_data
+                    input, modify_data=modify_data, name=name
                 )
                 return input
 
@@ -202,7 +202,7 @@ class ModifyHook(Hook):
             def hook(module, input, output):
                 modify_data = self._get_data(name)
                 self.storage[name] = self.config.data_fn(
-                    output, modify_data=modify_data
+                    output, modify_data=modify_data, name=name
                 )
                 return output
 

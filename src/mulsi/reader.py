@@ -3,7 +3,7 @@
 
 from typing import Union
 
-from mulsi.wrapper import ClipWrapper, LlmWrapper
+from mulsi.wrapper import CLIPModelWrapper, LlmWrapper
 
 
 class ContrastReader:
@@ -15,7 +15,7 @@ class ContrastReader:
 
     def read(
         self,
-        wrapper: Union[LlmWrapper, ClipWrapper],
+        wrapper: Union[LlmWrapper, CLIPModelWrapper],
         inputs,
         reading_vector=None,
         **kwargs
@@ -28,7 +28,7 @@ class ContrastReader:
         )
 
     def compute_reading_vector(
-        self, wrapper: Union[LlmWrapper, ClipWrapper], **kwargs
+        self, wrapper: Union[LlmWrapper, CLIPModelWrapper], **kwargs
     ):
         """Reads the representation."""
         return wrapper.compute_representation(

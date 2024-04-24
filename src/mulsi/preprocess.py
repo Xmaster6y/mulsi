@@ -12,7 +12,7 @@ from transformers import CLIPImageProcessor, PreTrainedTokenizer, image_utils
 
 
 @dataclass
-class DiffClipProcessor:
+class DiffCLIPImageProcessor:
     """Differentiable CLIP processor.
 
     TODO: Temporary solution. Should be inheriting from the processor.
@@ -20,11 +20,11 @@ class DiffClipProcessor:
 
     processor: CLIPImageProcessor
 
-    def preprocess(self, image):
+    def preprocess(self, image) -> torch.Tensor:
         if isinstance(image, Image.Image):
             image = pil_to_tensor(image).float().unsqueeze(0)
-        if image.dim() != 4:
-            raise NotImplementedError
+        if image.dim() == 3:
+            image = image.unsqueeze(0)
         if self.processor.resample != 3:
             raise NotImplementedError
         size = tuple(self.processor.crop_size.values())
@@ -43,14 +43,20 @@ class DiffClipProcessor:
         )
         return im_proc
 
-    def __call__(self, images, return_tensors="pt", padding=True):
-        if return_tensors != "pt":
-            raise NotImplementedError
-        images = image_utils.make_list_of_images(images)
-        return TensorDict(
-            {"pixel_values": [self.preprocess(image) for image in images]},
-            batch_size=len(images),
-        )
+    def __call__(self, images, **kwargs):
+        kwargs["return_tensors"] = "pt"
+        if isinstance(images, torch.Tensor):
+            if images.dim() == 3:
+                images = images.unsqueeze(0)
+            return {"pixel_values": self.preprocess(images)}
+        else:
+            images = image_utils.make_list_of_images(images)
+            return {
+                "pixel_values": torch.cat(
+                    [self.preprocess(image) for image in images],
+                    dim=0,
+                )
+            }
 
 
 @dataclass
@@ -69,3 +75,17 @@ class TdTokenizer:
             {k: v for k, v in inputs.items()},
             batch_size=inputs["input_ids"].shape[0],
         )
+
+
+@dataclass
+class DiffCLIPProcessor:
+    """Differentiable CLIP processor."""
+
+    image_processor: DiffCLIPImageProcessor
+    text_processor: PreTrainedTokenizer
+
+    def __call__(self, images, text=None, **kwargs):
+        outputs = {}
+        outputs.update(self.image_processor(images, **kwargs))
+        outputs.update(self.text_processor(text, **kwargs))
+        return outputs
