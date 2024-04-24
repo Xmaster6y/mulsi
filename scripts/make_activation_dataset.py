@@ -25,7 +25,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 @torch.no_grad
-def make_gen_list(processor, model, gen_dict, dataloaders, cache_hook):
+def make_gen_list(gen_dict, dataloaders, cache_hook, processor, model):
     module_exp = re.compile(r".*\.layers\.(?P<layer>\d+)$")
     for split, dataloader in dataloaders.items():
         for batch in dataloader:
