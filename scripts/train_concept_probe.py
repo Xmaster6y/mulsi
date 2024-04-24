@@ -10,7 +10,7 @@ import argparse
 
 import einops
 import torch
-from datasets import concatenate_datasets, load_dataset
+from datasets import load_dataset
 from huggingface_hub import HfApi
 from loguru import logger
 from sklearn.linear_model import LogisticRegression
@@ -48,7 +48,7 @@ def main(args):
         map_fn, remove_columns=["activation", "label"], batched=True
     )
 
-    train_ds = concatenate_datasets([dataset["train"], dataset["validation"]])
+    train_ds = dataset["train"]
     test_ds = dataset["test"]
     logger.info(f"Train shape: {train_ds.shape}, Test shape: {test_ds.shape}")
 
