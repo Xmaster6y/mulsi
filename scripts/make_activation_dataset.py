@@ -76,7 +76,7 @@ def collate_fn(batch):
     return images, infos
 
 
-splits = ["train", "validation", "test"]
+splits = ["train", "test"]
 dataloaders = {
     split: DataLoader(
         dataset[split],

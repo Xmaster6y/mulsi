@@ -9,7 +9,7 @@ poetry run python -m scripts.logistic_regression_clf
 import argparse
 
 import torch
-from datasets import concatenate_datasets, load_dataset
+from datasets import load_dataset
 from huggingface_hub import HfApi
 from loguru import logger
 from sklearn.linear_model import LogisticRegression
@@ -26,7 +26,7 @@ def main(args):
     dataset = load_dataset(args.dataset_name)
     dataset = dataset.class_encode_column("class")
 
-    train_ds = concatenate_datasets([dataset["train"], dataset["validation"]])
+    train_ds = dataset["train"]
     test_ds = dataset["test"]
     logger.info(f"Train shape: {train_ds.shape}, Test shape: {test_ds.shape}")
 

@@ -87,7 +87,7 @@ def main(args: argparse.Namespace):
     dataset = load_dataset(args.dataset_name, revision="refs/convert/parquet")
     logger.info(f"Loaded dataset: {dataset}")
 
-    splits = ["train", "validation", "test"]
+    splits = ["train", "test"]
     dataloaders = {
         split: DataLoader(
             dataset[split],
