@@ -41,13 +41,13 @@ def main(args):
     )
 
     logger.info("Train LR classifier")
-    gs.fit(X=train_ds["pooler"], y=train_ds["class"])
+    gs.fit(X=train_ds["output"], y=train_ds["class"])
     logger.info(f"CV results: {gs.cv_results_}")
     best_clf = gs.best_estimator_
-    score = best_clf.score(X=train_ds["pooler"], y=train_ds["class"])
+    score = best_clf.score(X=train_ds["output"], y=train_ds["class"])
     logger.info(f"Accuracy score in train set: {score}")
 
-    score = best_clf.score(X=test_ds["pooler"], y=test_ds["class"])
+    score = best_clf.score(X=test_ds["output"], y=test_ds["class"])
     logger.info(f"Accuracy score in test set: {score}")
 
     logger.info(f"Save model to {ASSETS_FOLDER}")
