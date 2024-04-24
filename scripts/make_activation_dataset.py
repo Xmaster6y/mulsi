@@ -71,12 +71,11 @@ def collate_fn(batch):
     infos = []
     for x in batch:
         images.append(x.pop("image"))
-        x.pop("original_name")
         infos.append(x)
     return images, infos
 
 
-splits = ["train", "validation", "test"]
+splits = ["train", "test"]
 dataloaders = {
     split: DataLoader(
         dataset[split],

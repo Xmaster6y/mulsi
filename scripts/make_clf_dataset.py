@@ -28,7 +28,6 @@ def collate_fn(batch):
     images, infos = [], []
     for x in batch:
         images.append(x.pop("image"))
-        x.pop("original_name")
         infos.append(x)
     return images, infos
 
@@ -87,7 +86,7 @@ def main(args: argparse.Namespace):
     dataset = load_dataset(args.dataset_name, revision="refs/convert/parquet")
     logger.info(f"Loaded dataset: {dataset}")
 
-    splits = ["train", "validation", "test"]
+    splits = ["train", "test"]
     dataloaders = {
         split: DataLoader(
             dataset[split],

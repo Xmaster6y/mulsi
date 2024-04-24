@@ -65,8 +65,8 @@ def main(args):
         shuffle=True,
         collate_fn=collate_fn,
     )
-    val_dataloader = DataLoader(
-        dataset["validation"],
+    test_dataloader = DataLoader(
+        dataset["test"],
         batch_size=args.batch_size,
         shuffle=False,
         collate_fn=collate_fn,
@@ -104,8 +104,8 @@ def main(args):
 
             model.eval()
             with torch.no_grad():
-                val_loss = 0
-                for i, batch in enumerate(val_dataloader):
+                test_loss = 0
+                for i, batch in enumerate(test_dataloader):
                     images, classes = batch
                     image_inputs = processor(
                         images=images,
@@ -117,9 +117,9 @@ def main(args):
                     labels = torch.tensor(classes).to(DEVICE)
                     output = model(**image_inputs, labels=labels)
                     loss = output["loss"]
-                    val_loss += loss.item()
-                val_loss /= len(val_dataloader)
-                wandb_run.log({"val/loss": val_loss}, step=step)
+                    test_loss += loss.item()
+                test_loss /= len(test_dataloader)
+                wandb_run.log({"test/loss": test_loss}, step=step)
 
     if args.push_to_hub:
         model.push_to_hub(
