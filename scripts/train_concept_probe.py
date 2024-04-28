@@ -14,6 +14,7 @@ from datasets import load_dataset
 from huggingface_hub import HfApi
 from loguru import logger
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import GridSearchCV, StratifiedShuffleSplit
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -66,15 +67,16 @@ def main(args):
     gs.fit(X=train_ds["pixel_activation"], y=train_ds["pixel_label"])
     logger.info(f"CV results: {gs.cv_results_}")
     best_clf = gs.best_estimator_
-    score = best_clf.score(
-        X=train_ds["pixel_activation"], y=train_ds["pixel_label"]
-    )
-    logger.info(f"Accuracy score in train set: {score}")
 
-    score = best_clf.score(
-        X=test_ds["pixel_activation"], y=test_ds["pixel_label"]
-    )
-    logger.info(f"Accuracy score in test set: {score}")
+    y_pred = best_clf.predict(X=train_ds["pixel_activation"])
+    acc = accuracy_score(y_true=train_ds["pixel_label"], y_pred=y_pred)
+    f1 = f1_score(y_true=train_ds["pixel_label"], y_pred=y_pred)
+    logger.info(f"train/accuracy: {acc} - train/f1: {f1}")
+
+    y_pred = best_clf.predict(X=test_ds["pixel_activation"])
+    acc = accuracy_score(y_true=test_ds["pixel_label"], y_pred=y_pred)
+    f1 = f1_score(y_true=test_ds["pixel_label"], y_pred=y_pred)
+    logger.info(f"train/accuracy: {acc} - train/f1: {f1}")
 
     logger.info(f"Save model to {ASSETS_FOLDER}")
     torch_clf = CLF(
