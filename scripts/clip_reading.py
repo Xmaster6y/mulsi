@@ -5,7 +5,7 @@ from PIL import Image
 from torchvision.transforms.functional import pil_to_tensor
 from transformers import CLIPModel, CLIPProcessor
 
-from mulsi import AdversarialImage, DiffClipProcessor
+from mulsi import AdversarialImage, DiffCLIPImageProcessor
 
 ####################
 # HYPERPARAMETERS
@@ -21,7 +21,7 @@ model.eval()
 for param in model.parameters():
     param.requires_grad = False
 processor = CLIPProcessor.from_pretrained(model_name)
-diff_processor = DiffClipProcessor(processor.image_processor)
+diff_processor = DiffCLIPImageProcessor(processor.image_processor)
 
 image_tensor = pil_to_tensor(image).float().unsqueeze(0)
 adv_image = AdversarialImage(image_tensor, model, None)

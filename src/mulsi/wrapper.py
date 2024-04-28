@@ -49,7 +49,7 @@ class CLIPModelWrapper:
 
     model: CLIPModel
     processor: CLIPProcessor
-    _cache_hook = CacheHook(HookConfig(module_exp=r"*layers\.\d+\.mlp\.act$"))
+    _cache_hook = CacheHook(HookConfig(module_exp=r".*layers\.\d+\.mlp\.act$"))
 
     @torch.no_grad()
     def compute_representation(
