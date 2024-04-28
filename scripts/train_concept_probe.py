@@ -55,7 +55,6 @@ def main(args):
     test_ds = dataset["test"]
     logger.info(f"Train shape: {train_ds.shape}, Test shape: {test_ds.shape}")
 
-    logger.info("Grid Search for LR classifier")
     pipe_clf = Pipeline(
         [("scaler", StandardScaler()), ("clf", LogisticRegression())]
     )
@@ -63,9 +62,8 @@ def main(args):
     sss = StratifiedShuffleSplit(n_splits=5, test_size=0.4, random_state=0)
     gs = GridSearchCV(pipe_clf, parameters, scoring="f1", cv=sss, n_jobs=-1)
 
-    logger.info("Train LR classifier")
+    logger.info(f"Train LR classifier for concept: {args.concept}")
     gs.fit(X=train_ds["pixel_activation"], y=train_ds["pixel_label"])
-    logger.info(f"CV results: {gs.cv_results_}")
     best_clf = gs.best_estimator_
 
     y_pred = best_clf.predict(X=train_ds["pixel_activation"])
