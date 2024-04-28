@@ -44,7 +44,6 @@ def main(args):
     model = CLIPForImageClassification.from_pretrained(
         args.model_name, config=config
     )
-    model.classifier.weight.data.normal_(mean=0.0, std=0.02)
     model.to(DEVICE)
     trainable_parameter_names = []
     for name, param in model.named_parameters():
@@ -143,6 +142,9 @@ def parse_args() -> argparse.Namespace:
         "--dataset_name", type=str, default="mulsi/fruit-vegetable-concepts"
     )
     parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument(
+        "--use_pooler", action=argparse.BooleanOptionalAction, default=True
+    )
     parser.add_argument("--n_epochs", type=int, default=3)
     parser.add_argument("--lr", type=float, default=1e-5)
     parser.add_argument(

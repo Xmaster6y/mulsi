@@ -28,7 +28,9 @@ def main(args):
     filtered_ds = init_ds.filter(lambda s: s[args.concept] is not None)
     labeled_ds = filtered_ds.rename_column(args.concept, "label")
     labeled_ds = labeled_ds.class_encode_column("label")
-    torch_ds = labeled_ds.with_format("torch")
+    torch_ds = labeled_ds.select_columns(["activation", "label"]).with_format(
+        "torch"
+    )
 
     def map_fn(s_batched):
         b, p, h = s_batched["activation"].shape
