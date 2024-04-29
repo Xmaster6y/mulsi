@@ -210,7 +210,10 @@ class AdversarialImage:
         alpha: Optional[float] = None,
         use_sign: bool = True,
         callback_fn: Optional[Callable] = None,
+        initial_callback: bool = True,
     ) -> None:
+        if callback_fn is not None and initial_callback:
+            callback_fn(self.adv)
         for _ in tqdm.tqdm(range(n_iter)):
             self.fgsm_(epsilon, input_list, alpha, use_sign)
             if callback_fn is not None:
