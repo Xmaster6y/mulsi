@@ -21,19 +21,19 @@ class LlmWrapper:
 
     model: AutoModelForCausalLM
     tokenizer: AutoTokenizer
-    _cache_hook = CacheHook(
+    cache_hook: CacheHook = CacheHook(
         HookConfig(module_exp=r"^transformer\.h\.\d*\.mlp\.act$")
     )
 
     @torch.no_grad()
     def compute_representation(self, inputs, **kwargs) -> Representation:
         """Computes the representation."""
-        self._cache_hook.register(self.model)
+        self.cache_hook.register(self.model)
         encoded_inputs = self.tokenizer(inputs, return_tensors="pt")
         self.model(**encoded_inputs, **kwargs)
-        representation = Representation(self._cache_hook.storage)
+        representation = Representation(self.cache_hook.storage)
         representation = representation.mean(dim=(0, 1)).flatten()
-        self._cache_hook.clear()
+        self.cache_hook.clear()
         return representation
 
     def compute_loss(self, inputs, labels, **kwargs):
@@ -49,7 +49,7 @@ class CLIPModelWrapper:
 
     model: CLIPModel
     processor: CLIPProcessor
-    _cache_hook = CacheHook(
+    cache_hook: CacheHook = CacheHook(
         HookConfig(module_exp=r".*layers\.\d+\.mlp\.activation_fn$")
     )
 
@@ -58,9 +58,10 @@ class CLIPModelWrapper:
         self, images, text=None, **kwargs
     ) -> Representation:
         """Computes the representation."""
-        self._cache_hook.register(self.model)
+        self.cache_hook.register(self.model)
         encoded_inputs = self.processor(
             images=images, text=text, return_tensors="pt"
         )
         self.model(**encoded_inputs, **kwargs)
-        return Representation(self._cache_hook.storage)
+        self.cache_hook.remove()
+        return Representation(self.cache_hook.storage)
