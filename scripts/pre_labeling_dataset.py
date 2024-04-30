@@ -65,8 +65,7 @@ def main(args):
         assert len(df["class"].unique()) == len(CLASS_CONCEPTS_VALUES.keys())
 
         for key, values in CLASS_CONCEPTS_VALUES.items():
-            for val in values:
-                df.loc[df["class"] == key, val] = True
+            df.loc[df["class"] == key, values] = True
         metadata = df.to_dict(orient="records")
 
         logger.info("Save metadata to Hub/Locally")
