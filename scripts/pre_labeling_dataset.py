@@ -1,3 +1,5 @@
+"""Script for pre-labeling the dataset.
+"""
 import argparse
 
 from huggingface_hub import HfApi
@@ -99,7 +101,7 @@ def main(args):
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser("make-activation-dataset")
+    parser = argparse.ArgumentParser("pre-label-dataset")
     parser.add_argument(
         "--push_to_hub", action=argparse.BooleanOptionalAction, default=False
     )
