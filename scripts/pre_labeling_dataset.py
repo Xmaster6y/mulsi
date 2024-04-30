@@ -67,7 +67,8 @@ def main(args):
         for idx, class_ in zip(df.index, df["class"]):
             concepts = CLASS_CONCEPTS_VALUES[class_]
             for c in concepts:
-                if not df.loc[idx, c]:
+                current_value = df.loc[idx, c]
+                if current_value is None:
                     df.loc[idx, c] = True
 
         metadata = df.to_dict(orient="records")
