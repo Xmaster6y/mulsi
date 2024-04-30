@@ -10,52 +10,11 @@ from loguru import logger
 
 from scripts.constants import (
     ASSETS_FOLDER,
-    CLASSES,
+    CLASS_CONCEPTS_VALUES,
     DATASET_NAME,
     HF_TOKEN,
     SPLITS,
 )
-
-CLASS_CONCEPTS_VALUES = {
-    "cucumber": ["green", "cylinder"],
-    "ginger": ["brown"],
-    "jalepeno": ["stem", "green", "cylinder"],
-    "mango": ["seed", "orange", "ovaloid"],
-    "orange": ["orange", "sphere"],
-    "eggplant": ["purple", "cylinder"],
-    "cauliflower": ["white"],
-    "tomato": [],  # already labeled
-    "kiwi": [],  # already labeled
-    "peas": ["seed", "green", "sphere"],
-    "potato": ["brown", "ovaloid"],
-    "lemon": [],  # already labeled
-    "chilli pepper": ["red"],
-    "watermelon": [],  # already labeled
-    "apple": ["red", "green"],
-    "lettuce": ["leaf", "green"],
-    "banana": ["yellow", "cylinder"],
-    "corn": ["seed", "yellow"],
-    "cabbage": ["green"],
-    "capsicum": ["green"],
-    "spinach": ["leaf", "green"],
-    "garlic": ["white"],
-    "soy beans": ["seed", "brown"],
-    "grapes": ["green"],
-    "carrot": ["orange", "stem"],
-    "paprika": ["red", "stem"],
-    "beetroot": ["red", "stem", "tail"],
-    "turnip": ["white", "purple", "stem"],
-    "pineapple": ["ovaloid", "brown", "yellow"],
-    "bell pepper": ["green", "red", "yellow", "stem"],
-    "raddish": ["red", "stem"],
-    "onion": ["white", "sphere"],
-    "pear": ["green"],
-    "pomegranate": ["red", "seed"],
-    "sweetcorn": ["seed", "yellow"],
-    "sweetpotato": ["orange", "brown", "ovaloid"],
-}
-
-assert len(CLASSES) == len(CLASS_CONCEPTS_VALUES.keys())
 
 
 def get_metadata(hf_api: HfApi, split: str):
