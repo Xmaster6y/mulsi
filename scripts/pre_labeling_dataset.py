@@ -86,7 +86,8 @@ def save_metadata(
 
     if push_to_hub:
         hf_api.upload_file(
-            path_or_fileobj=f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/metadata.jsonl",
+            path_or_fileobj=f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/"
+            "metadata.jsonl",
             path_in_repo=f"data/{split}/metadata.jsonl",
             repo_id=DATASET_NAME,
             repo_type="dataset",
