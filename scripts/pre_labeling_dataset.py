@@ -37,9 +37,7 @@ def get_metadata(hf_api: HfApi, split: str):
 
 
 def save_metadata(hf_api: HfApi, metadata: dict, split: str, push_to_hub: bool = False):
-    with jsonlines.open(
-        f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/metadata.jsonl", mode="w"
-    ) as writer:
+    with jsonlines.open(f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/metadata.jsonl", mode="w") as writer:
         writer.write_all(metadata)
 
     if push_to_hub:
@@ -60,9 +58,7 @@ def get_votes(hf_api: HfApi):
     metadata = {}
     for split in SPLITS:
         metadata[split] = []
-        with jsonlines.open(
-            f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/metadata.jsonl"
-        ) as reader:
+        with jsonlines.open(f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/metadata.jsonl") as reader:
             for row in reader:
                 metadata[split].append(row)
     votes = {}
