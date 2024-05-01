@@ -9,6 +9,7 @@ jobs:
   semantic-release:
     runs-on: ubuntu-latest
     concurrency: release
+    needs: ci-base
     permissions:
       id-token: write
       contents: write
