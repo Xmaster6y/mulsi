@@ -1,12 +1,13 @@
-name: Semantic Release
+name: PR Semantic Release
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: [ci]
+    types:
+      - completed
 
 jobs:
-  semantic-release:
+  pr-semantic-release:
     runs-on: ubuntu-latest
     concurrency: release
     permissions:
@@ -21,6 +22,6 @@ jobs:
     - name: Python Semantic Release
       uses: python-semantic-release/python-semantic-release@master
       with:
-        commit: false
-        vcs_release: true
+        commit: true
+        vcs_release: false
         github_token: ${{ secrets.GH_TOKEN }}

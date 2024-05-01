@@ -1,12 +1,9 @@
-name: Semantic Release
+name: Dispatch Semantic Release
 
-on:
-  push:
-    branches:
-      - main
+on: workflow_dispatch
 
 jobs:
-  semantic-release:
+  disp-semantic-release:
     runs-on: ubuntu-latest
     concurrency: release
     permissions:
@@ -21,6 +18,6 @@ jobs:
     - name: Python Semantic Release
       uses: python-semantic-release/python-semantic-release@master
       with:
-        commit: false
-        vcs_release: true
+        commit: true
+        vcs_release: false
         github_token: ${{ secrets.GH_TOKEN }}
