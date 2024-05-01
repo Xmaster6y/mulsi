@@ -42,6 +42,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
+        ref: ${{ github.ref }}
         fetch-depth: 0
 
     - name: Python Semantic Release
