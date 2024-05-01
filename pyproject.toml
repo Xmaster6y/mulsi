@@ -61,8 +61,8 @@ loguru = "^0.7.2"
 scikit-learn = "^1.4.2"
 
 [tool.semantic_release]
-commit_message = "{version}"
+commit_message = "v{version}"
 tag_format = "v{version}"
 
 [tool.semantic_release.branches.main]
-match = "main"
+match = ".*"
