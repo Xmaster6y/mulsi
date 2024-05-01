@@ -47,6 +47,8 @@ jobs:
     - name: Python Semantic Release
       uses: python-semantic-release/python-semantic-release@master
       with:
+        git_committer_name: Xmaster6y
+        git_committer_email: 66315201+Xmaster6y@users.noreply.github.com
         commit: true
         build_metadata: false
         vcs_release: false
