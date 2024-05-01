@@ -1,13 +1,13 @@
-name: Dry Semantic Release
+name: PR Semantic Release
 
 on:
   workflow_run:
-    workflows: [CI]
+    workflows: [ci]
     types:
       - completed
 
 jobs:
-  release:
+  pr-semantic-release:
     runs-on: ubuntu-latest
     concurrency: release
     permissions:
