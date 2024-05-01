@@ -6,7 +6,7 @@ on:
 jobs:
   ci-base:
     runs-on: ubuntu-latest
-    environment: ci
+    environment: ci-base
     timeout-minutes: 10
 
     steps:
@@ -28,26 +28,3 @@ jobs:
     - name: Run tests
       run: |
         make tests
-
-
-  ci-semantic-release:
-    runs-on: ubuntu-latest
-    environment: ci-semantic-release
-    needs: ci-base
-    concurrency: release
-    permissions:
-      id-token: write
-      contents: write
-
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-
-    - name: Python Semantic Release
-      uses: python-semantic-release/python-semantic-release@master
-      with:
-        commit: true
-        build_metadata: false
-        vcs_release: false
-        github_token: ${{ secrets.GH_TOKEN }}
