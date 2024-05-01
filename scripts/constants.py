@@ -9,8 +9,35 @@ WANDB_API_KEY = os.getenv("WANDB_API_KEY")
 
 ASSETS_FOLDER = pathlib.Path(__file__).parent / "assets"
 
+USERS = ["imenelydiaker", "Xmaster6y"]
+
 SPLITS = ["train", "test"]
 DATASET_NAME = "mulsi/fruit-vegetable-concepts"
+CONCEPTS = [
+    # Environment
+    "stem",
+    "leaf",
+    "tail",
+    "seed",
+    "pulp",
+    "soil",
+    "tree",
+    # Shapes
+    "ovaloid",
+    "sphere",
+    "cylinder",
+    "cube",
+    # Colors
+    "black",
+    "purple",
+    "red",
+    "blue",
+    "green",
+    "brown",
+    "orange",
+    "yellow",
+    "white",
+]
 CLASSES = [
     "cucumber",
     "ginger",
@@ -49,7 +76,6 @@ CLASSES = [
     "sweetcorn",
     "sweetpotato",
 ]
-
 CLASS_CONCEPTS_VALUES = {
     "cucumber": ["green", "cylinder"],
     "ginger": ["brown"],
