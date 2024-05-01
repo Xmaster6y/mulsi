@@ -12,7 +12,10 @@ from mulsi import CLF
 @pytest.fixture
 def pipe_clf():
     x = torch.rand(10, 4)
-    y = torch.rand(10, 3).argmax(dim=1)
+    y = torch.randint(0, 3, (10,))
+    y[0] = 0
+    y[1] = 1
+    y[2] = 2
     pipe_clf = Pipeline([("scaler", StandardScaler()), ("clf", LogisticRegression())])
     pipe_clf.fit(x, y)
     return pipe_clf
