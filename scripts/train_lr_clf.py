@@ -31,14 +31,10 @@ def main(args):
     logger.info(f"Train shape: {train_ds.shape}, Test shape: {test_ds.shape}")
 
     logger.info("Grid Search for LR classifier")
-    pipe_clf = Pipeline(
-        [("scaler", StandardScaler()), ("clf", LogisticRegression())]
-    )
+    pipe_clf = Pipeline([("scaler", StandardScaler()), ("clf", LogisticRegression())])
     parameters = {"clf__max_iter": [200, 500], "clf__C": [1e-1, 1, 10]}
     sss = StratifiedShuffleSplit(n_splits=5, test_size=0.4, random_state=0)
-    gs = GridSearchCV(
-        pipe_clf, parameters, scoring="f1_micro", cv=sss, n_jobs=-1
-    )
+    gs = GridSearchCV(pipe_clf, parameters, scoring="f1_micro", cv=sss, n_jobs=-1)
 
     logger.info("Train LR classifier")
     gs.fit(X=train_ds["output"], y=train_ds["class"])
@@ -51,9 +47,7 @@ def main(args):
     logger.info(f"Accuracy score in test set: {score}")
 
     logger.info(f"Save model to {ASSETS_FOLDER}")
-    torch_clf = CLF(
-        pipe_clf=best_clf, classes=dataset["train"].features["class"].names
-    )
+    torch_clf = CLF(pipe_clf=best_clf, classes=dataset["train"].features["class"].names)
     with open(ASSETS_FOLDER / "clf.pt", "wb") as f:
         torch.save(torch_clf, f)
 
@@ -70,13 +64,9 @@ def main(args):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--dataset_name", type=str, default="mulsi/fruit-vegetable-outputs"
-    )
+    parser.add_argument("--dataset_name", type=str, default="mulsi/fruit-vegetable-outputs")
     parser.add_argument("--config_name", type=str, default="pooler")
-    parser.add_argument(
-        "--push_to_hub", action=argparse.BooleanOptionalAction, default=False
-    )
+    parser.add_argument("--push_to_hub", action=argparse.BooleanOptionalAction, default=False)
     return parser.parse_args()
 
 

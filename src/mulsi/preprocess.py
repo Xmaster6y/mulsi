@@ -1,5 +1,4 @@
-"""Preprocessing functions for MULSI.
-"""
+"""Preprocessing functions for MULSI."""
 
 from dataclasses import dataclass
 
@@ -28,9 +27,7 @@ class DiffCLIPImageProcessor:
         if self.processor.resample != 3:
             raise NotImplementedError
         size = tuple(self.processor.crop_size.values())
-        im_proc = torch.nn.functional.interpolate(
-            image, size=size, antialias=True, mode="bicubic"
-        )
+        im_proc = torch.nn.functional.interpolate(image, size=size, antialias=True, mode="bicubic")
 
         im_proc = im_proc * self.processor.rescale_factor
 

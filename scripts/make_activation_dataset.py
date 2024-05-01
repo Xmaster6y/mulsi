@@ -39,11 +39,7 @@ def make_gen_list(gen_dict, dataloaders, cache_hook, processor, model):
             for module, batched_activations in cache_hook.storage.items():
                 m = module_exp.match(module)
                 layer = m.group("layer")
-                gen_dict[layer][split].append(
-                    make_batch_gen(
-                        batched_activations[0].detach(), infos, "activation"
-                    )
-                )
+                gen_dict[layer][split].append(make_batch_gen(batched_activations[0].detach(), infos, "activation"))
 
 
 def main(args: argparse.Namespace):
@@ -58,9 +54,7 @@ def main(args: argparse.Namespace):
     model.to(DEVICE)
 
     if args.layers == "*":
-        layers = [
-            str(i) for i in range(model.vision_model.config.num_hidden_layers)
-        ]
+        layers = [str(i) for i in range(model.vision_model.config.num_hidden_layers)]
     else:
         layers = args.layers.split(",")
 
@@ -84,9 +78,7 @@ def main(args: argparse.Namespace):
         for split in splits
     }
 
-    cache_hook = CacheHook(
-        HookConfig(module_exp=rf".*\.layers\.({'|'.join(layers)})$")
-    )
+    cache_hook = CacheHook(HookConfig(module_exp=rf".*\.layers\.({'|'.join(layers)})$"))
     handles = cache_hook.register(model.vision_model)
     print(f"[INFO] Registered {len(handles)} hooks")
 
@@ -100,12 +92,7 @@ def main(args: argparse.Namespace):
         cache_hook=cache_hook,
     )
     config_dict = {
-        f"layers.{layer}": DatasetDict(
-            {
-                split: Dataset.from_generator(gen_dict[layer][split])
-                for split in splits
-            }
-        )
+        f"layers.{layer}": DatasetDict({split: Dataset.from_generator(gen_dict[layer][split]) for split in splits})
         for layer in layers
     }
 
@@ -121,9 +108,7 @@ def main(args: argparse.Namespace):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("make-activation-dataset")
-    parser.add_argument(
-        "--model_name", type=str, default="openai/clip-vit-base-patch32"
-    )
+    parser.add_argument("--model_name", type=str, default="openai/clip-vit-base-patch32")
     parser.add_argument(
         "--dataset_name",
         type=str,
@@ -134,9 +119,7 @@ def parse_args() -> argparse.Namespace:
         action=argparse.BooleanOptionalAction,
         default=False,
     )
-    parser.add_argument(
-        "--push_to_hub", action=argparse.BooleanOptionalAction, default=False
-    )
+    parser.add_argument("--push_to_hub", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--layers", type=str, default="0,6,11")
     return parser.parse_args()

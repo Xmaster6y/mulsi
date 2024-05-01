@@ -1,5 +1,4 @@
-"""Test of the hook module.
-"""
+"""Test of the hook module."""
 
 import torch
 

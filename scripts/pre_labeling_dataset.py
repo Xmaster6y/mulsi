@@ -1,5 +1,4 @@
-"""Script for pre-labeling the dataset.
-"""
+"""Script for pre-labeling the dataset."""
 
 import argparse
 
@@ -27,26 +26,19 @@ def get_metadata(hf_api: HfApi, split: str):
         local_dir=f"{ASSETS_FOLDER}/{DATASET_NAME}",
     )
 
-    with jsonlines.open(
-        f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/metadata.jsonl"
-    ) as reader:
+    with jsonlines.open(f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/metadata.jsonl") as reader:
         for row in reader:
             metadata.append(row)
     return metadata
 
 
-def save_metadata(
-    hf_api: HfApi, metadata: dict, split: str, push_to_hub: bool = False
-):
-    with jsonlines.open(
-        f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/metadata.jsonl", mode="w"
-    ) as writer:
+def save_metadata(hf_api: HfApi, metadata: dict, split: str, push_to_hub: bool = False):
+    with jsonlines.open(f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/metadata.jsonl", mode="w") as writer:
         writer.write_all(metadata)
 
     if push_to_hub:
         hf_api.upload_file(
-            path_or_fileobj=f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/"
-            "metadata.jsonl",
+            path_or_fileobj=f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/" "metadata.jsonl",
             path_in_repo=f"data/{split}/metadata.jsonl",
             repo_id=DATASET_NAME,
             repo_type="dataset",
@@ -79,9 +71,7 @@ def main(args):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("pre-label-dataset")
-    parser.add_argument(
-        "--push_to_hub", action=argparse.BooleanOptionalAction, default=False
-    )
+    parser.add_argument("--push_to_hub", action=argparse.BooleanOptionalAction, default=False)
     return parser.parse_args()
 
 
