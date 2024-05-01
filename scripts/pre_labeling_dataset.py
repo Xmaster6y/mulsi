@@ -1,5 +1,7 @@
 """Script for pre-labeling the dataset."""
 
+import os
+import json
 import argparse
 
 import jsonlines
@@ -13,6 +15,8 @@ from scripts.constants import (
     DATASET_NAME,
     HF_TOKEN,
     SPLITS,
+    CONCEPTS,
+    USERS,
 )
 
 
@@ -45,13 +49,62 @@ def save_metadata(hf_api: HfApi, metadata: dict, split: str, push_to_hub: bool =
         )
 
 
+def get_votes(hf_api: HfApi):
+    hf_api.snapshot_download(
+        local_dir=f"{ASSETS_FOLDER}/{DATASET_NAME}",
+        repo_id=DATASET_NAME,
+        repo_type="dataset",
+    )
+    metadata = {}
+    for split in SPLITS:
+        metadata[split] = []
+        with jsonlines.open(f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/metadata.jsonl") as reader:
+            for row in reader:
+                metadata[split].append(row)
+    votes = {}
+    for filename in os.listdir(f"{ASSETS_FOLDER}/{DATASET_NAME}/votes"):
+        with open(f"{ASSETS_FOLDER}/{DATASET_NAME}/votes/{filename}") as f:
+            key = filename.split(".")[0]
+            votes[key] = json.load(f)
+    return metadata, votes
+
+
+def get_pre_labeled_concepts(item: dict):
+    active_concepts = CLASS_CONCEPTS_VALUES[item["class"]]
+    return {c: c in active_concepts for c in CONCEPTS}
+
+
 def main(args):
     hf_api = HfApi(token=HF_TOKEN)
+
+    logger.info("Download metadata and votes")
+    metadata, votes = get_votes(hf_api)
+
     for split in SPLITS:
-        logger.info("Get metadata from Hub")
+        for item in metadata[split]:
+            key = item["id"]
+            if key not in votes.keys():
+                concepts = get_pre_labeled_concepts(item)
+                votes[key] = {user: concepts for user in USERS}
+
+    logger.info("Save votes locally")
+    for key in votes:
+        with open(f"{ASSETS_FOLDER}/{DATASET_NAME}/votes/{key}.json", "w") as f:
+            json.dump(votes[key], f)
+
+    if args.push_to_hub:
+        logger.info("Upload votes to Hub")
+        hf_api.upload_folder(
+            folder_path=f"{ASSETS_FOLDER}/{DATASET_NAME}",
+            repo_id=DATASET_NAME,
+            repo_type="dataset",
+            allow_patterns=["votes/*"],
+        )
+
+    logger.info("Update metadata")
+    for split in SPLITS:
         metadata = get_metadata(hf_api, split=split)
 
-        logger.info("Pre-label concepts")
         df = pd.DataFrame.from_records(metadata)
 
         assert len(df["class"].unique()) == len(CLASS_CONCEPTS_VALUES.keys())
