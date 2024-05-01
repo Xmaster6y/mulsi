@@ -1,8 +1,6 @@
 name: Dispatch Semantic Release
 
-on:
-  dispatch:
-    types: [release]
+on: workflow_dispatch
 
 jobs:
   disp-semantic-release:
