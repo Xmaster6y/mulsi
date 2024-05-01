@@ -6,7 +6,7 @@ on:
 jobs:
   ci-base:
     runs-on: ubuntu-latest
-    environment: ci
+    environment: ci-base
     timeout-minutes: 10
 
     steps:
