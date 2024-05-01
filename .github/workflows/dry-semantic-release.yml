@@ -1,9 +1,10 @@
-name: Semantic Release
+name: Dry Semantic Release
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
 
 jobs:
   release:
@@ -21,6 +22,6 @@ jobs:
     - name: Python Semantic Release
       uses: python-semantic-release/python-semantic-release@master
       with:
-        commit: false
-        vcs_release: true
+        commit: true
+        vcs_release: false
         github_token: ${{ secrets.GH_TOKEN }}
