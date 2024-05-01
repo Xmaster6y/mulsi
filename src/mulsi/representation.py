@@ -1,5 +1,4 @@
-"""Module to abstract the internal representation of the model.
-"""
+"""Module to abstract the internal representation of the model."""
 
 from typing import Callable, Union
 
@@ -11,16 +10,12 @@ from typeguard import check_type
 class Representation(dict):
     """Class for manipulating representations."""
 
-    def __add__(
-        self, other: Union[Number, torch.Tensor, "Representation"]
-    ) -> "Representation":
+    def __add__(self, other: Union[Number, torch.Tensor, "Representation"]) -> "Representation":
         """Adds two representations."""
         check_type(other, Union[Number, torch.Tensor, "Representation"])
         if isinstance(other, Representation):
             if self.keys() != other.keys():
-                raise ValueError(
-                    "Incompatible representations (different keys)."
-                )
+                raise ValueError("Incompatible representations (different keys).")
             new_dict = {}
             for key in self.keys():
                 new_dict[key] = self[key] + other[key]
@@ -28,16 +23,12 @@ class Representation(dict):
         else:
             return self.apply(lambda value: value + other)
 
-    def __mul__(
-        self, other: Union[Number, torch.Tensor, "Representation"]
-    ) -> "Representation":
+    def __mul__(self, other: Union[Number, torch.Tensor, "Representation"]) -> "Representation":
         """Multiplies two representations."""
         check_type(other, Union[Number, torch.Tensor, "Representation"])
         if isinstance(other, Representation):
             if self.keys() != other.keys():
-                raise ValueError(
-                    "Incompatible representations (different keys)."
-                )
+                raise ValueError("Incompatible representations (different keys).")
             new_dict = {}
             for key in self.keys():
                 new_dict[key] = self[key] * other[key]
@@ -50,9 +41,7 @@ class Representation(dict):
         """Negates the representation."""
         return self.__mul__(-1)
 
-    def __sub__(
-        self, other: Union[Number, torch.Tensor, "Representation"]
-    ) -> "Representation":
+    def __sub__(self, other: Union[Number, torch.Tensor, "Representation"]) -> "Representation":
         """Subtracts two representations."""
         return self.__add__(-other)
 
@@ -99,15 +88,11 @@ class Representation(dict):
         return Representation(new_dict)
 
     @classmethod
-    def mean_representation(
-        cls, *representations: "Representation"
-    ) -> "Representation":
+    def mean_representation(cls, *representations: "Representation") -> "Representation":
         """Averages the representations."""
         if not representations:
             raise ValueError("No representations given.")
         new_dict = {}
         for key in representations[0].keys():
-            new_dict[key] = torch.mean(
-                torch.stack([rep[key] for rep in representations]), dim=0
-            )
+            new_dict[key] = torch.mean(torch.stack([rep[key] for rep in representations]), dim=0)
         return cls(new_dict)

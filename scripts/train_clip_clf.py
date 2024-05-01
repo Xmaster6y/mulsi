@@ -33,17 +33,11 @@ def main(args):
     processor = CLIPProcessor.from_pretrained(args.model_name)
     config = AutoConfig.from_pretrained(args.model_name)
     config.problem_type = "single_label_classification"
-    config.label2id = {
-        label: str(i) for i, label in enumerate(class_feature.names)
-    }
-    config.id2label = {
-        str(i): label for i, label in enumerate(class_feature.names)
-    }
+    config.label2id = {label: str(i) for i, label in enumerate(class_feature.names)}
+    config.id2label = {str(i): label for i, label in enumerate(class_feature.names)}
     config.num_labels = class_feature.num_classes
 
-    model = CLIPForImageClassification.from_pretrained(
-        args.model_name, config=config
-    )
+    model = CLIPForImageClassification.from_pretrained(args.model_name, config=config)
     model.classifier.weight.data.normal_(mean=0.0, std=0.02)
     model.to(DEVICE)
     trainable_parameter_names = []
@@ -90,9 +84,7 @@ def main(args):
                     images=images,
                     return_tensors="pt",
                 )
-                image_inputs = {
-                    k: v.to(DEVICE) for k, v in image_inputs.items()
-                }
+                image_inputs = {k: v.to(DEVICE) for k, v in image_inputs.items()}
                 labels = torch.tensor(classes).to(DEVICE)
                 optimizer.zero_grad()
                 output = model(**image_inputs, labels=labels)
@@ -111,9 +103,7 @@ def main(args):
                         images=images,
                         return_tensors="pt",
                     )
-                    image_inputs = {
-                        k: v.to(DEVICE) for k, v in image_inputs.items()
-                    }
+                    image_inputs = {k: v.to(DEVICE) for k, v in image_inputs.items()}
                     labels = torch.tensor(classes).to(DEVICE)
                     output = model(**image_inputs, labels=labels)
                     loss = output["loss"]
@@ -123,31 +113,21 @@ def main(args):
 
     if args.push_to_hub:
         model.push_to_hub(
-            args.dataset_name.replace(
-                "concepts", args.model_name.split("/")[-1]
-            ),
+            args.dataset_name.replace("concepts", args.model_name.split("/")[-1]),
         )
         processor.push_to_hub(
-            args.dataset_name.replace(
-                "concepts", args.model_name.split("/")[-1]
-            ),
+            args.dataset_name.replace("concepts", args.model_name.split("/")[-1]),
         )
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("train-clip-clf")
-    parser.add_argument(
-        "--model_name", type=str, default="openai/clip-vit-base-patch32"
-    )
-    parser.add_argument(
-        "--dataset_name", type=str, default="mulsi/fruit-vegetable-concepts"
-    )
+    parser.add_argument("--model_name", type=str, default="openai/clip-vit-base-patch32")
+    parser.add_argument("--dataset_name", type=str, default="mulsi/fruit-vegetable-concepts")
     parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--n_epochs", type=int, default=3)
     parser.add_argument("--lr", type=float, default=1e-5)
-    parser.add_argument(
-        "--push_to_hub", action=argparse.BooleanOptionalAction, default=False
-    )
+    parser.add_argument("--push_to_hub", action=argparse.BooleanOptionalAction, default=False)
     return parser.parse_args()
 
 

@@ -1,5 +1,4 @@
-"""Module to implement generic probing.
-"""
+"""Module to implement generic probing."""
 
 from abc import ABC, abstractmethod
 from typing import Any
@@ -35,9 +34,7 @@ class Probe(ABC):
         """Score the probe."""
         predictions = self.predict(activations, **kwargs)
         scores = {"mse": torch.nn.functional.mse_loss(predictions, labels)}
-        scores["accuracy"] = (
-            (predictions.argmax(dim=1) == labels.argmax(dim=1)).float().mean()
-        )
+        scores["accuracy"] = (predictions.argmax(dim=1) == labels.argmax(dim=1)).float().mean()
         return scores
 
 
@@ -61,9 +58,7 @@ class SignalCav(Probe):
         mean_label = labels.float().mean(dim=0, keepdim=True)
         scaled_activations = activations - mean_activation
         scaled_labels = labels - mean_label
-        cav = einops.einsum(
-            scaled_activations, scaled_labels, "b a, b d -> a d"
-        )
+        cav = einops.einsum(scaled_activations, scaled_labels, "b a, b d -> a d")
         self._h = cav / (cav.norm(dim=0, keepdim=True) + EPS)
         self._trained = True
 

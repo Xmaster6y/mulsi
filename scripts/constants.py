@@ -1,5 +1,4 @@
-"""Constans for running the scripts.
-"""
+"""Constans for running the scripts."""
 
 import os
 import pathlib

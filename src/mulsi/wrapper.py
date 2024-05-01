@@ -1,5 +1,4 @@
-"""Class for MULSI models.
-"""
+"""Class for MULSI models."""
 
 from dataclasses import dataclass
 
@@ -21,9 +20,7 @@ class LlmWrapper:
 
     model: AutoModelForCausalLM
     tokenizer: AutoTokenizer
-    _cache_hook = CacheHook(
-        HookConfig(module_exp=r"^transformer\.h\.\d*\.mlp\.act$")
-    )
+    _cache_hook = CacheHook(HookConfig(module_exp=r"^transformer\.h\.\d*\.mlp\.act$"))
 
     @torch.no_grad()
     def compute_representation(self, inputs, **kwargs) -> Representation:
@@ -52,13 +49,9 @@ class CLIPModelWrapper:
     _cache_hook = CacheHook(HookConfig(module_exp=r"*layers\.\d+\.mlp\.act$"))
 
     @torch.no_grad()
-    def compute_representation(
-        self, images, text=None, **kwargs
-    ) -> Representation:
+    def compute_representation(self, images, text=None, **kwargs) -> Representation:
         """Computes the representation."""
         self._cache_hook.register(self.model)
-        encoded_inputs = self.processor(
-            images=images, text=text, return_tensors="pt"
-        )
+        encoded_inputs = self.processor(images=images, text=text, return_tensors="pt")
         self.model(**encoded_inputs, **kwargs)
         return Representation(self._cache_hook.storage)

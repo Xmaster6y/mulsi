@@ -1,10 +1,6 @@
-[tool.black]
-line-length = 79
-
-[tool.isort]
-profile = "black"
-line_length = 79
-src_paths = ["src", "tests", "scripts", "docs", "demo"]
+[tool.ruff]
+line-length = 119
+target-version = "py39"
 
 [tool.poetry]
 name = "mulsi"
@@ -63,10 +59,3 @@ datasets = "^2.18.0"
 wandb = "^0.16.5"
 loguru = "^0.7.2"
 scikit-learn = "^1.4.2"
-
-[tool.semantic_release]
-commit_message = "{version}"
-tag_format = "v{version}"
-
-[tool.semantic_release.branches.main]
-match = "main"

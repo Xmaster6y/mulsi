@@ -1,5 +1,4 @@
-"""Test of the fgsm attack.
-"""
+"""Test of the fgsm attack."""
 
 import torch
 
