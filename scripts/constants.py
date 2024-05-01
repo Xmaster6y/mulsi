@@ -8,8 +8,6 @@ WANDB_API_KEY = os.getenv("WANDB_API_KEY")
 
 ASSETS_FOLDER = pathlib.Path(__file__).parent / "assets"
 
-USERS = ["imenelydiaker", "Xmaster6y"]
-
 SPLITS = ["train", "test"]
 DATASET_NAME = "mulsi/fruit-vegetable-concepts"
 CONCEPTS = [
@@ -77,41 +75,54 @@ CLASSES = [
 ]
 CLASS_CONCEPTS_VALUES = {
     "cucumber": ["green", "cylinder"],
-    "ginger": ["brown"],
+    "ginger": ["brown", "cylinder"],
     "jalepeno": ["stem", "green", "cylinder"],
-    "mango": ["seed", "orange", "ovaloid"],
+    "mango": ["yellow", "ovaloid"],
     "orange": ["orange", "sphere"],
     "eggplant": ["purple", "cylinder"],
-    "cauliflower": ["white"],
+    "cauliflower": ["white", "leaf"],
     "tomato": [],  # already labeled
     "kiwi": [],  # already labeled
     "peas": ["seed", "green", "sphere"],
     "potato": ["brown", "ovaloid"],
     "lemon": [],  # already labeled
-    "chilli pepper": ["red"],
+    "chilli pepper": ["red", "stem", "cylinder"],
     "watermelon": [],  # already labeled
-    "apple": ["red", "green"],
-    "lettuce": ["leaf", "green"],
+    "apple": ["red", "green", "sphere"],
+    "lettuce": [],  # already labeled
     "banana": ["yellow", "cylinder"],
-    "corn": ["seed", "yellow"],
-    "cabbage": ["green"],
-    "capsicum": ["green"],
+    "corn": ["seed", "yellow", "cylinder"],
+    "cabbage": [],  # already labeled
+    "capsicum": ["green", "cylinder"],
     "spinach": ["leaf", "green"],
-    "garlic": ["white"],
+    "garlic": ["white", "ovaloid"],
     "soy beans": ["seed", "brown"],
-    "grapes": ["green"],
-    "carrot": ["orange", "stem"],
-    "paprika": ["red", "stem"],
-    "beetroot": ["red", "stem", "tail"],
-    "turnip": ["white", "purple", "stem"],
+    "grapes": ["green", "sphere"],
+    "carrot": ["orange", "stem", "cylinder"],
+    "paprika": [],  # already labeled
+    "beetroot": [],  # already labeled
+    "turnip": ["white", "purple", "stem", "sphere", "tail"],
     "pineapple": ["ovaloid", "brown", "yellow"],
-    "bell pepper": ["green", "red", "yellow", "stem"],
-    "raddish": ["red", "stem"],
+    "bell pepper": ["green", "red", "yellow", "stem", "cylinder"],
+    "raddish": ["red", "stem", "sphere"],
     "onion": ["white", "sphere"],
-    "pear": ["green"],
-    "pomegranate": ["red", "seed"],
-    "sweetcorn": ["seed", "yellow"],
+    "pear": ["green", "ovaloid"],
+    "pomegranate": ["red", "seed", "sphere"],
+    "sweetcorn": ["seed", "yellow", "cylinder"],
     "sweetpotato": ["orange", "brown", "ovaloid"],
 }
+
+LABELED_CLASSES = [
+    "tomato",
+    "kiwi",
+    "lemon",
+    "watermelon",
+    "paprika",
+    "lettuce",
+    "beetroot",
+    "cabbage",
+    "bell pepper",
+    "carrot",
+]
 
 assert len(CLASSES) == len(CLASS_CONCEPTS_VALUES.keys())

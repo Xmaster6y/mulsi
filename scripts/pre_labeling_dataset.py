@@ -1,11 +1,16 @@
-"""Script for pre-labeling the dataset."""
+"""Script for pre-labeling the dataset.
+
+Run with:
+```
+poetry run python -m scripts.pre_labeling_dataset
+```
+"""
 
 import os
 import json
 import argparse
 
 import jsonlines
-import pandas as pd
 from huggingface_hub import HfApi
 from loguru import logger
 
@@ -16,24 +21,8 @@ from scripts.constants import (
     HF_TOKEN,
     SPLITS,
     CONCEPTS,
-    USERS,
+    LABELED_CLASSES,
 )
-
-
-def get_metadata(hf_api: HfApi, split: str):
-    metadata = []
-    hf_api.hf_hub_download(
-        repo_id=DATASET_NAME,
-        filename="metadata.jsonl",
-        subfolder=f"data/{split}",
-        repo_type="dataset",
-        local_dir=f"{ASSETS_FOLDER}/{DATASET_NAME}",
-    )
-
-    with jsonlines.open(f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/metadata.jsonl") as reader:
-        for row in reader:
-            metadata.append(row)
-    return metadata
 
 
 def save_metadata(hf_api: HfApi, metadata: dict, split: str, push_to_hub: bool = False):
@@ -74,6 +63,16 @@ def get_pre_labeled_concepts(item: dict):
     return {c: c in active_concepts for c in CONCEPTS}
 
 
+def compute_concepts(votes):
+    vote_sum = {c: 0 for c in CONCEPTS}
+    for vote in votes.values():
+        for c in CONCEPTS:
+            if c not in vote:
+                continue
+            vote_sum[c] += 2 * vote[c] - 1
+    return {c: vote_sum[c] > 0 if vote_sum[c] != 0 else None for c in CONCEPTS}
+
+
 def main(args):
     hf_api = HfApi(token=HF_TOKEN)
 
@@ -82,10 +81,13 @@ def main(args):
 
     for split in SPLITS:
         for item in metadata[split]:
+            if item["class"] in LABELED_CLASSES:
+                continue
             key = item["id"]
-            if key not in votes.keys():
-                concepts = get_pre_labeled_concepts(item)
-                votes[key] = {user: concepts for user in USERS}
+            concepts = get_pre_labeled_concepts(item)
+            if "imenelydiaker" not in votes:
+                continue
+            votes[key] = {"imenelydiaker": concepts}
 
     logger.info("Save votes locally")
     for key in votes:
@@ -101,25 +103,22 @@ def main(args):
             allow_patterns=["votes/*"],
         )
 
-    logger.info("Update metadata")
-    for split in SPLITS:
-        metadata = get_metadata(hf_api, split=split)
+    new_metadata = {}
+    for split in ["train", "test"]:
+        new_metadata[split] = []
+        with jsonlines.open(f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/metadata.jsonl") as reader:
+            for row in reader:
+                s_id = row["id"]
+                if s_id in votes:
+                    row.update(compute_concepts(votes[s_id]))
+                new_metadata[split].append(row)
+        with jsonlines.open(f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/metadata.jsonl", mode="w") as writer:
+            writer.write_all(new_metadata[split])
 
-        df = pd.DataFrame.from_records(metadata)
-
-        assert len(df["class"].unique()) == len(CLASS_CONCEPTS_VALUES.keys())
-
-        for idx, class_ in zip(df.index, df["class"]):
-            concepts = CLASS_CONCEPTS_VALUES[class_]
-            for c in concepts:
-                current_value = df.loc[idx, c]
-                if current_value is None:
-                    df.loc[idx, c] = True
-
-        metadata = df.to_dict(orient="records")
-
-        logger.info("Save metadata to Hub/Locally")
-        save_metadata(hf_api, metadata, split, args.push_to_hub)
+    if args.push_to_hub:
+        logger.info("Upload metadata to Hub")
+        for split in SPLITS:
+            save_metadata(hf_api, new_metadata[split], split, push_to_hub=True)
 
 
 def parse_args() -> argparse.Namespace:
