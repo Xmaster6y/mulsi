@@ -65,4 +65,4 @@ commit_message = "{version}"
 tag_format = "v{version}"
 
 [tool.semantic_release.branches.main]
-match = "main"
+match = ".*"
