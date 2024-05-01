@@ -28,29 +28,3 @@ jobs:
     - name: Run tests
       run: |
         make tests
-
-
-  ci-semantic-release:
-    runs-on: ubuntu-latest
-    environment: ci-semantic-release
-    needs: ci-base
-    concurrency: release
-    permissions:
-      id-token: write
-      contents: write
-
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        ref: ${{ github.ref }}
-        fetch-depth: 0
-
-    - name: Python Semantic Release
-      uses: python-semantic-release/python-semantic-release@master
-      with:
-        git_committer_name: Xmaster6y
-        git_committer_email: 66315201+Xmaster6y@users.noreply.github.com
-        commit: true
-        build_metadata: false
-        vcs_release: false
-        github_token: ${{ secrets.GH_TOKEN }}
