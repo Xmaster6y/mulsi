@@ -177,7 +177,7 @@ class AdversarialImage:
             if use_sign:
                 self.delta.add_(grad_mul * self.delta.grad.sign())
             else:
-                self.delta.add_(grad_mul * self.delta.grad.to(torch.uint8))
+                self.delta.add_((grad_mul * self.delta.grad / self.delta.grad.abs().max()).to(torch.uint8))
         self._ensure_valid_delta_(epsilon)
 
     def fgsm_iter_(
@@ -188,7 +188,10 @@ class AdversarialImage:
         alpha: Optional[float] = None,
         use_sign: bool = True,
         callback_fn: Optional[Callable] = None,
+        initial_callback: bool = True,
     ) -> None:
+        if callback_fn is not None and initial_callback:
+            callback_fn(self.adv)
         for _ in tqdm.tqdm(range(n_iter)):
             self.fgsm_(epsilon, input_list, alpha, use_sign)
             if callback_fn is not None:

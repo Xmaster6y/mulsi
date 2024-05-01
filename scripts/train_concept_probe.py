@@ -14,6 +14,7 @@ from datasets import load_dataset
 from huggingface_hub import HfApi
 from loguru import logger
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import GridSearchCV, StratifiedShuffleSplit
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -28,7 +29,7 @@ def main(args):
     filtered_ds = init_ds.filter(lambda s: s[args.concept] is not None)
     labeled_ds = filtered_ds.rename_column(args.concept, "label")
     labeled_ds = labeled_ds.class_encode_column("label")
-    torch_ds = labeled_ds.with_format("torch")
+    torch_ds = labeled_ds.select_columns(["activation", "label"]).with_format("torch")
 
     def map_fn(s_batched):
         b, p, h = s_batched["activation"].shape
@@ -44,21 +45,24 @@ def main(args):
     test_ds = dataset["test"]
     logger.info(f"Train shape: {train_ds.shape}, Test shape: {test_ds.shape}")
 
-    logger.info("Grid Search for LR classifier")
     pipe_clf = Pipeline([("scaler", StandardScaler()), ("clf", LogisticRegression())])
     parameters = {"clf__max_iter": [200, 500], "clf__C": [1e-1, 1, 10]}
     sss = StratifiedShuffleSplit(n_splits=5, test_size=0.4, random_state=0)
     gs = GridSearchCV(pipe_clf, parameters, scoring="f1", cv=sss, n_jobs=-1)
 
-    logger.info("Train LR classifier")
+    logger.info(f"Train LR classifier for concept: {args.concept}")
     gs.fit(X=train_ds["pixel_activation"], y=train_ds["pixel_label"])
-    logger.info(f"CV results: {gs.cv_results_}")
     best_clf = gs.best_estimator_
-    score = best_clf.score(X=train_ds["pixel_activation"], y=train_ds["pixel_label"])
-    logger.info(f"Accuracy score in train set: {score}")
 
-    score = best_clf.score(X=test_ds["pixel_activation"], y=test_ds["pixel_label"])
-    logger.info(f"Accuracy score in test set: {score}")
+    y_pred = best_clf.predict(X=train_ds["pixel_activation"])
+    acc = accuracy_score(y_true=train_ds["pixel_label"], y_pred=y_pred)
+    f1 = f1_score(y_true=train_ds["pixel_label"], y_pred=y_pred)
+    logger.info(f"train/accuracy: {acc} - train/f1: {f1}")
+
+    y_pred = best_clf.predict(X=test_ds["pixel_activation"])
+    acc = accuracy_score(y_true=test_ds["pixel_label"], y_pred=y_pred)
+    f1 = f1_score(y_true=test_ds["pixel_label"], y_pred=y_pred)
+    logger.info(f"train/accuracy: {acc} - train/f1: {f1}")
 
     logger.info(f"Save model to {ASSETS_FOLDER}")
     torch_clf = CLF(pipe_clf=best_clf, classes=labeled_ds["train"].features["label"].names)
