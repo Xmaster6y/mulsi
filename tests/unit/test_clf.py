@@ -1,5 +1,4 @@
-"""Test of the clf.
-"""
+"""Test of the clf."""
 
 import pytest
 import torch
@@ -13,10 +12,11 @@ from mulsi import CLF
 @pytest.fixture
 def pipe_clf():
     x = torch.rand(10, 4)
-    y = torch.rand(10, 3).argmax(dim=1)
-    pipe_clf = Pipeline(
-        [("scaler", StandardScaler()), ("clf", LogisticRegression())]
-    )
+    y = torch.randint(0, 3, (10,))
+    y[0] = 0
+    y[1] = 1
+    y[2] = 2
+    pipe_clf = Pipeline([("scaler", StandardScaler()), ("clf", LogisticRegression())])
     pipe_clf.fit(x, y)
     return pipe_clf
 
@@ -36,9 +36,3 @@ class TestCLF:
         sk_pred = torch.tensor(pipe_clf.predict(x))
         torch_pred = torch_clf.predict(x)
         assert (torch_pred == sk_pred).all()
-
-    def test_predict_proba(self, pipe_clf, torch_clf):
-        x = torch.rand(10, 4)
-        sk_pred = torch.tensor(pipe_clf.predict_proba(x))
-        torch_pred = torch_clf.predict_proba(x)
-        assert torch.allclose(torch_pred, sk_pred, atol=1e-5)

@@ -103,9 +103,7 @@ def main(args: argparse.Namespace):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("make-clf-dataset")
-    parser.add_argument(
-        "--model_name", type=str, default="openai/clip-vit-base-patch32"
-    )
+    parser.add_argument("--model_name", type=str, default="openai/clip-vit-base-patch32")
     parser.add_argument(
         "--dataset_name",
         type=str,
@@ -117,9 +115,7 @@ def parse_args() -> argparse.Namespace:
         default="pooler",
         choices=["pooler", "embeds", "mean_pooling"],
     )
-    parser.add_argument(
-        "--push_to_hub", action=argparse.BooleanOptionalAction, default=False
-    )
+    parser.add_argument("--push_to_hub", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--batch_size", type=int, default=64)
     return parser.parse_args()
 

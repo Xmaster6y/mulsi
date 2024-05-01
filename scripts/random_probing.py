@@ -36,7 +36,5 @@ print(f"[INFO] Signal CAV test score: {cav_probe.score(X_test, Y_test)}")
 
 linear_probe = LinearProbe()
 linear_probe.train(X_train, Y_train)
-print(
-    f"[INFO] Linear probe train score: {linear_probe.score(X_train, Y_train)}"
-)
+print(f"[INFO] Linear probe train score: {linear_probe.score(X_train, Y_train)}")
 print(f"[INFO] Linear probe test score: {linear_probe.score(X_test, Y_test)}")

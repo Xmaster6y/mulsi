@@ -1,5 +1,4 @@
-"""Module for the Fast Gradient Sign Method (FGSM) adversarial attacks.
-"""
+"""Module for the Fast Gradient Sign Method (FGSM) adversarial attacks."""
 
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
@@ -38,23 +37,17 @@ class CLIPClfLoss(Loss):
         self.image_processor = image_processor
         self.reduction = reduction
 
-    def forward(
-        self, adv_image: torch.Tensor, data: Dict[str, Any]
-    ) -> torch.Tensor:
+    def forward(self, adv_image: torch.Tensor, data: Dict[str, Any]) -> torch.Tensor:
         labels = data.get("labels")
         if labels is None:
             raise ValueError("Labels must be provided.")
         elif labels.ndim != 1:
             raise ValueError("Labels must be 1D.")
-        encoded_inputs = self.image_processor(
-            images=adv_image, return_tensors="pt"
-        )
+        encoded_inputs = self.image_processor(images=adv_image, return_tensors="pt")
         outputs = self.model(**encoded_inputs)
         logits = outputs.logits
         logits = logits.expand(labels.shape[0], -1)
-        return torch.nn.functional.cross_entropy(
-            logits, labels, reduction=self.reduction
-        )
+        return torch.nn.functional.cross_entropy(logits, labels, reduction=self.reduction)
 
 
 class LRClfLoss(Loss):
@@ -73,24 +66,18 @@ class LRClfLoss(Loss):
         self.image_processor = image_processor
         self.reduction = reduction
 
-    def forward(
-        self, adv_image: torch.Tensor, data: Dict[str, Any]
-    ) -> torch.Tensor:
+    def forward(self, adv_image: torch.Tensor, data: Dict[str, Any]) -> torch.Tensor:
         labels = data.get("labels")
         if labels is None:
             raise ValueError("Labels must be provided.")
         elif labels.ndim != 1:
             raise ValueError("Labels must be 1D.")
-        encoded_inputs = self.image_processor(
-            images=adv_image, return_tensors="pt"
-        )
+        encoded_inputs = self.image_processor(images=adv_image, return_tensors="pt")
         outputs = self.base_model(**encoded_inputs)
         pooler = outputs.pooler_output
         logits = self.clf_model(pooler)
         logits = logits.expand(labels.shape[0], -1)
-        return torch.nn.functional.cross_entropy(
-            logits, labels, reduction=self.reduction
-        )
+        return torch.nn.functional.cross_entropy(logits, labels, reduction=self.reduction)
 
 
 class CLIPContrastiveLoss(Loss):
@@ -105,16 +92,11 @@ class CLIPContrastiveLoss(Loss):
         self.model = model
         self.processor = processor
 
-    def forward(
-        self, adv_image: torch.Tensor, data: Dict[str, Any]
-    ) -> torch.Tensor:
-
+    def forward(self, adv_image: torch.Tensor, data: Dict[str, Any]) -> torch.Tensor:
         text = data.get("text")
         if text is None:
             raise ValueError("Text must be provided.")
-        encoded_inputs = self.processor(
-            images=adv_image, text=text, return_tensors="pt"
-        )
+        encoded_inputs = self.processor(images=adv_image, text=text, return_tensors="pt")
         outputs = self.model(**encoded_inputs, return_loss=True)
         return outputs.loss
 
@@ -138,17 +120,13 @@ class CLIPEmbedsLoss(Loss):
         else:
             self.loss_fn = loss_fn
 
-    def forward(
-        self, adv_image: torch.Tensor, data: Dict[str, Any]
-    ) -> torch.Tensor:
+    def forward(self, adv_image: torch.Tensor, data: Dict[str, Any]) -> torch.Tensor:
         images = data.get("images")
         text = data.get("text")
         encoded_inputs = self.processor(images=adv_image, return_tensors="pt")
         outputs = self.model(**encoded_inputs)
         adv_embeds = outputs.image_embeds
-        encoded_inputs = self.processor(
-            images=images, text=text, return_tensors="pt"
-        )
+        encoded_inputs = self.processor(images=images, text=text, return_tensors="pt")
         outputs = self.model(**encoded_inputs)
         n = 0
         total_loss = 0.0
@@ -199,13 +177,7 @@ class AdversarialImage:
             if use_sign:
                 self.delta.add_(grad_mul * self.delta.grad.sign())
             else:
-                self.delta.add_(
-                    (
-                        grad_mul
-                        * self.delta.grad
-                        / self.delta.grad.abs().max()
-                    ).to(torch.uint8)
-                )
+                self.delta.add_((grad_mul * self.delta.grad / self.delta.grad.abs().max()).to(torch.uint8))
         self._ensure_valid_delta_(epsilon)
 
     def fgsm_iter_(

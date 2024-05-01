@@ -1,5 +1,4 @@
-"""Classifier class.
-"""
+"""Classifier class."""
 
 from typing import List
 
@@ -14,7 +13,6 @@ class CLF(torch.nn.Module):
         self._mean = torch.tensor(pipe_clf.named_steps["scaler"].mean_)
         self._coef = torch.tensor(pipe_clf.named_steps["clf"].coef_)
         self._intercept = torch.tensor(pipe_clf.named_steps["clf"].intercept_)
-        self.softmax = torch.nn.Softmax(dim=1)
 
     def forward(self, x):
         x = (x - self._mean) / self._scale
@@ -30,7 +28,3 @@ class CLF(torch.nn.Module):
             return indices, [self._classes[i] for i in indices]
         else:
             return indices
-
-    @torch.no_grad()
-    def predict_proba(self, x):
-        return self.softmax(self.forward(x))

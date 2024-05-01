@@ -26,9 +26,7 @@ class TestSimpleRepresentation:
             }
         )
         for key in zero_representation.keys():
-            assert (
-                zero_representation[key] == expected_representation[key]
-            ).all()
+            assert (zero_representation[key] == expected_representation[key]).all()
 
     def test_mul_representation(self):
         """
@@ -48,9 +46,7 @@ class TestSimpleRepresentation:
             }
         )
         for key in zero_representation.keys():
-            assert (
-                zero_representation[key] == expected_representation[key]
-            ).all()
+            assert (zero_representation[key] == expected_representation[key]).all()
 
     def test_sub_representation(self):
         """
@@ -70,6 +66,4 @@ class TestSimpleRepresentation:
             }
         )
         for key in zero_representation.keys():
-            assert (
-                zero_representation[key] == expected_representation[key]
-            ).all()
+            assert (zero_representation[key] == expected_representation[key]).all()

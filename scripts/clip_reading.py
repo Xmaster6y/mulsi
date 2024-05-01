@@ -1,5 +1,4 @@
-"""Simple FGSM attack.
-"""
+"""Simple FGSM attack."""
 
 from PIL import Image
 from torchvision.transforms.functional import pil_to_tensor
