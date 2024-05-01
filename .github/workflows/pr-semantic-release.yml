@@ -23,5 +23,6 @@ jobs:
       uses: python-semantic-release/python-semantic-release@master
       with:
         commit: true
+        metadata: false
         vcs_release: false
         github_token: ${{ secrets.GH_TOKEN }}
