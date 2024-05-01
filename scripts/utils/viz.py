@@ -1,5 +1,4 @@
-"""Simple vizualization utils.
-"""
+"""Simple vizualization utils."""
 
 from typing import List
 

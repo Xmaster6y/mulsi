@@ -1,5 +1,4 @@
-"""Classifier class.
-"""
+"""Classifier class."""
 
 from typing import List
 

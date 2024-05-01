@@ -79,13 +79,9 @@ class Hook(ABC):
             if not compiled_exp.match(name):
                 continue
             if self.config.hook_type is HookType.FORWARD:
-                self.removable_handles.append(
-                    module.register_forward_hook(self.forward_factory(name))
-                )
+                self.removable_handles.append(module.register_forward_hook(self.forward_factory(name)))
             elif self.config.hook_type is HookType.BACKWARD:
-                self.removable_handles.append(
-                    module.register_backward_hook(self.backward_factory(name))
-                )
+                self.removable_handles.append(module.register_backward_hook(self.backward_factory(name)))
             else:
                 raise ValueError(f"Unknown hook type: {self.config.hook_type}")
         return self.removable_handles
@@ -117,11 +113,7 @@ class Hook(ABC):
         pass
 
     def _get_data(self, name):
-        return (
-            self.config.data.get(name)
-            if self.config.data is not None
-            else None
-        )
+        return self.config.data.get(name) if self.config.data is not None else None
 
 
 class CacheHook(Hook):
@@ -145,9 +137,7 @@ class CacheHook(Hook):
         return hook
 
     def backward_factory(self, name: str):
-        raise NotImplementedError(
-            "Backward hook not implemented for CacheHook"
-        )
+        raise NotImplementedError("Backward hook not implemented for CacheHook")
 
 
 class MeasureHook(Hook):
@@ -160,26 +150,20 @@ class MeasureHook(Hook):
 
             def hook(module, input, output):
                 measure_data = self._get_data(name)
-                self.storage[name] = self.config.data_fn(
-                    input, measure_data=measure_data, name=name
-                )
+                self.storage[name] = self.config.data_fn(input, measure_data=measure_data, name=name)
 
         elif self.config.hook_mode is HookMode.OUTPUT:
 
             def hook(module, input, output):
                 measure_data = self._get_data(name)
-                self.storage[name] = self.config.data_fn(
-                    output, measure_data=measure_data, name=name
-                )
+                self.storage[name] = self.config.data_fn(output, measure_data=measure_data, name=name)
 
         else:
             raise ValueError(f"Unknown measure mode: {self.config.hook_mode}")
         return hook
 
     def backward_factory(self, name: str):
-        raise NotImplementedError(
-            "Backward hook not implemented for MeasureHook"
-        )
+        raise NotImplementedError("Backward hook not implemented for MeasureHook")
 
 
 class ModifyHook(Hook):
@@ -192,18 +176,14 @@ class ModifyHook(Hook):
 
             def hook(module, input, output):
                 modify_data = self._get_data(name)
-                self.storage[name] = self.config.data_fn(
-                    input, modify_data=modify_data, name=name
-                )
+                self.storage[name] = self.config.data_fn(input, modify_data=modify_data, name=name)
                 return input
 
         elif self.config.hook_mode is HookMode.OUTPUT:
 
             def hook(module, input, output):
                 modify_data = self._get_data(name)
-                self.storage[name] = self.config.data_fn(
-                    output, modify_data=modify_data, name=name
-                )
+                self.storage[name] = self.config.data_fn(output, modify_data=modify_data, name=name)
                 return output
 
         else:
