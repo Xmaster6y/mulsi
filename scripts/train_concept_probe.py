@@ -20,13 +20,14 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 from mulsi.clf import CLF
-from scripts.constants import ASSETS_FOLDER, HF_TOKEN
+from scripts.constants import ASSETS_FOLDER, HF_TOKEN, LABELED_CLASSES, CLASSES
 
 
 def main(args):
     logger.info(f"Load dataset from {args.dataset_name}")
     init_ds = load_dataset(args.dataset_name, args.config_name)
-    filtered_ds = init_ds.filter(lambda s: s[args.concept] is not None)
+    selected_classes = LABELED_CLASSES if args.only_labeled else CLASSES
+    filtered_ds = init_ds.filter(lambda s: s[args.concept] is not None and s["class"] in selected_classes)
     labeled_ds = filtered_ds.rename_column(args.concept, "label")
     labeled_ds = labeled_ds.class_encode_column("label")
     torch_ds = labeled_ds.select_columns(["activation", "label"]).with_format("torch")
@@ -52,6 +53,7 @@ def main(args):
                 "clf",
                 LogisticRegression(
                     penalty=args.penalty,
+                    solver=args.solver,
                 ),
             ),
         ]
@@ -96,6 +98,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--config_name", type=str, default="layers.11")
     parser.add_argument("--concept", type=str, default="yellow")
     parser.add_argument("--penalty", type=str, default="l1")
+    parser.add_argument("--solver", type=str, default="liblinear")
+    parser.add_argument("--only_labeled", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--push_to_hub", action=argparse.BooleanOptionalAction, default=False)
     return parser.parse_args()
 
