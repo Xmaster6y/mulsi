@@ -74,7 +74,7 @@ def main(args):
     y_pred = best_clf.predict(X=test_ds["pixel_activation"])
     acc = accuracy_score(y_true=test_ds["pixel_label"], y_pred=y_pred)
     f1 = f1_score(y_true=test_ds["pixel_label"], y_pred=y_pred)
-    logger.info(f"train/accuracy: {acc} - train/f1: {f1}")
+    logger.info(f"test/accuracy: {acc} - test/f1: {f1}")
 
     logger.info(f"Save model to {ASSETS_FOLDER}")
     torch_clf = CLF(pipe_clf=best_clf, classes=labeled_ds["train"].features["label"].names)
