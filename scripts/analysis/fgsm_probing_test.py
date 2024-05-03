@@ -25,7 +25,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LAYER_NAMES = ["layers.0", "layers.6", "layers.11"]
 CONCEPTS = ["yellow", "green", "red", "cylinder", "sphere", "ovaloid"]
 GOOD_INDICES = {
-    "banana": [],
+    "banana": [],  # None for all
     "lemon": [0, 6, 8],
     "tomato": [],
 }
@@ -82,7 +82,8 @@ def main(args: argparse.Namespace):
         for target in GOOD_INDICES.keys():
             if target == class_name:
                 continue
-            for i in good_indices:
+            it = range(len(filtered_ds)) if good_indices is None else good_indices
+            for i in it:
                 adv_im, storage = analysis.produce_adv_im(
                     filtered_ds[i]["image"],
                     target,
@@ -92,8 +93,8 @@ def main(args: argparse.Namespace):
                     label2id,
                     loss,
                     probes,
-                    epsilon=5,
-                    n_iter=15,
+                    epsilon=args.epsilon,
+                    n_iter=args.n_iter,
                     use_sign=True,
                 )
                 analysis.plot_logits(
@@ -127,6 +128,8 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default="mulsi/fruit-vegetable-concepts",
     )
+    parser.add_argument("--epsilon", type=int, default=3)
+    parser.add_argument("--n_iter", type=int, default=10)
     return parser.parse_args()
 
 

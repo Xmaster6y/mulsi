@@ -90,8 +90,9 @@ def plot_logits(
     for s in storage:
         for label_id in label_ids:
             logit_dict[id2label[label_id]].append(s["logits"][label_id])
+    plt.figure()
     for label, logits in logit_dict.items():
-        plt.plot(range(1, len(logits) + 1), logits, label=label)
+        plt.plot(range(len(logits)), logits, label=label)
     plt.legend()
     plt.ylabel("Logit")
     plt.xlabel("Adv step")
@@ -114,6 +115,7 @@ def plot_mean_proba(
             layer_name, concept = curve_name.split("/")
             mean_pred_dict[curve_name].append(s[f"vision_model.encoder.{layer_name}"][concept].mean())
             std_pred_dict[curve_name].append(s[f"vision_model.encoder.{layer_name}"][concept].std())
+    plt.figure()
     for label in mean_pred_dict.keys():
         plt.errorbar(
             range(len(mean_pred_dict[label])),
@@ -141,6 +143,7 @@ def plot_cls_proba(
         for curve_name in pred_dict.keys():
             layer_name, concept = curve_name.split("/")
             pred_dict[curve_name].append(s[f"vision_model.encoder.{layer_name}"][concept][0, 0])
+    plt.figure()
     for label in pred_dict.keys():
         plt.plot(
             range(len(pred_dict[label])),
@@ -176,8 +179,8 @@ def plot_proba_heatmap(
         ax1.imshow(pred_dict[label][0].reshape(7, 7), cmap=cmap, vmin=0, vmax=1)
         ax2 = plt.subplot(1, 3, 2)
         step = len(pred_dict[label]) // 2
-        ax2.set_title(f"{label} (step: {step-1})")
-        ax2.imshow(pred_dict[label][step - 1].reshape(7, 7), cmap=cmap, vmin=0, vmax=1)
+        ax2.set_title(f"{label} (step: {step})")
+        ax2.imshow(pred_dict[label][step].reshape(7, 7), cmap=cmap, vmin=0, vmax=1)
         ax3 = plt.subplot(1, 3, 3)
         step = len(pred_dict[label])
         ax3.set_title(f"{label} (step: {step-1})")
