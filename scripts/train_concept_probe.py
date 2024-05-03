@@ -45,7 +45,17 @@ def main(args):
     test_ds = dataset["test"]
     logger.info(f"Train shape: {train_ds.shape}, Test shape: {test_ds.shape}")
 
-    pipe_clf = Pipeline([("scaler", StandardScaler()), ("clf", LogisticRegression())])
+    pipe_clf = Pipeline(
+        [
+            ("scaler", StandardScaler()),
+            (
+                "clf",
+                LogisticRegression(
+                    penalty=args.penalty,
+                ),
+            ),
+        ]
+    )
     parameters = {"clf__max_iter": [200, 500], "clf__C": [1e-1, 1, 10]}
     sss = StratifiedShuffleSplit(n_splits=5, test_size=0.4, random_state=0)
     gs = GridSearchCV(pipe_clf, parameters, scoring="f1", cv=sss, n_jobs=-1)
@@ -85,6 +95,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dataset_name", type=str, default="mulsi/fruit-vegetable-activations")
     parser.add_argument("--config_name", type=str, default="layers.11")
     parser.add_argument("--concept", type=str, default="yellow")
+    parser.add_argument("--penalty", type=str, default="l1")
     parser.add_argument("--push_to_hub", action=argparse.BooleanOptionalAction, default=False)
     return parser.parse_args()
 
