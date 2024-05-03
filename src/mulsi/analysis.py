@@ -80,6 +80,7 @@ def plot_logits(
     id2label,
     label_ids=None,
     labels=None,
+    title=None,
     save_to=None,
 ):
     if label_ids is None and labels is None:
@@ -96,8 +97,10 @@ def plot_logits(
     plt.legend()
     plt.ylabel("Logit")
     plt.xlabel("Adv step")
+    plt.title(title)
     if save_to is not None:
         plt.savefig(save_to)
+        plt.close()
     else:
         plt.show()
 
@@ -106,6 +109,7 @@ def plot_mean_proba(
     storage,
     layer_names,
     concepts,
+    title=None,
     save_to=None,
 ):
     mean_pred_dict = {f"{layer_name}/{concept}": [] for layer_name in layer_names for concept in concepts}
@@ -126,8 +130,10 @@ def plot_mean_proba(
     plt.legend()
     plt.ylabel("Mean concept proba")
     plt.xlabel("Adv step")
+    plt.title(title)
     if save_to is not None:
         plt.savefig(save_to)
+        plt.close()
     else:
         plt.show()
 
@@ -136,6 +142,7 @@ def plot_cls_proba(
     storage,
     layer_names,
     concepts,
+    title=None,
     save_to=None,
 ):
     pred_dict = {f"{layer_name}/{concept}": [] for layer_name in layer_names for concept in concepts}
@@ -153,8 +160,10 @@ def plot_cls_proba(
     plt.legend()
     plt.ylabel("CLS concept proba")
     plt.xlabel("Adv step")
+    plt.title(title)
     if save_to is not None:
         plt.savefig(save_to)
+        plt.close()
     else:
         plt.show()
 
@@ -164,6 +173,7 @@ def plot_proba_heatmap(
     layer_names,
     concepts,
     cmap="PuBuGn",
+    title=None,
     save_to=None,
 ):
     pred_dict = {f"{layer_name}/{concept}": [] for layer_name in layer_names for concept in concepts}
@@ -173,6 +183,7 @@ def plot_proba_heatmap(
             pred_dict[curve_name].append(s[f"vision_model.encoder.{layer_name}"][concept][1:, 0])
     for label in pred_dict.keys():
         fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
+        plt.title(title)
         fig.tight_layout()
         ax1 = plt.subplot(1, 3, 1)
         ax1.set_title(f"{label} (step: 0)")
@@ -187,5 +198,43 @@ def plot_proba_heatmap(
         ax3.imshow(pred_dict[label][step - 1].reshape(7, 7), cmap=cmap, vmin=0, vmax=1)
         if save_to is not None:
             plt.savefig(f"{save_to}".replace("label", label.replace("/", "_")))
+            plt.close()
         else:
             plt.show()
+
+
+def plot_mean_proba_through_layers(
+    storage,
+    layer_names,
+    concepts,
+    step_indices,
+    title=None,
+    save_to=None,
+):
+    mean_pred_dict = {f"{idx}/{concept}": [] for idx in step_indices for concept in concepts}
+    std_pred_dict = {f"{idx}/{concept}": [] for idx in step_indices for concept in concepts}
+    for step_index in step_indices:
+        s = storage[step_index]
+        for layer_name in layer_names:
+            for concept in concepts:
+                label_name = f"{step_index}/{concept}"
+                mean_pred_dict[label_name].append(s[f"vision_model.encoder.{layer_name}"][concept].mean())
+                std_pred_dict[label_name].append(s[f"vision_model.encoder.{layer_name}"][concept].std())
+    plt.figure()
+    for label in mean_pred_dict.keys():
+        plt.errorbar(
+            range(len(mean_pred_dict[label])),
+            mean_pred_dict[label],
+            yerr=std_pred_dict[label],
+            label=label,
+        )
+    plt.legend()
+    plt.ylabel("Mean concept proba")
+    plt.xlabel("layer")
+    plt.xticks(range(len(layer_names)), [layer_name.split(".")[1] for layer_name in layer_names])
+    plt.title(title)
+    if save_to is not None:
+        plt.savefig(save_to)
+        plt.close()
+    else:
+        plt.show()

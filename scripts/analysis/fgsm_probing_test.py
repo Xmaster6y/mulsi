@@ -23,7 +23,7 @@ from scripts.constants import HF_TOKEN, ASSETS_FOLDER
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LAYER_NAMES = ["layers.0", "layers.6", "layers.11"]
-CONCEPTS = ["yellow", "green", "red", "cylinder", "sphere", "ovaloid"]
+CONCEPTS = ["yellow", "red", "sphere", "ovaloid"]
 GOOD_INDICES = {
     "banana": [],  # None for all
     "lemon": [0, 6, 8],
@@ -61,6 +61,7 @@ def main(args: argparse.Namespace):
         repo_id=dataset_name.replace("concepts", "probes"),
         repo_type="model",
         local_dir=ASSETS_FOLDER / dataset_name.replace("concepts", "probes"),
+        revision=args.probe_ref,
     )
     dataset = load_dataset(dataset_name, split="test", revision="refs/convert/parquet")
 
@@ -82,6 +83,7 @@ def main(args: argparse.Namespace):
         for target in GOOD_INDICES.keys():
             if target == class_name:
                 continue
+            os.makedirs(ASSETS_FOLDER / "figures" / f"{class_name}_{target}", exist_ok=True)
             it = range(len(filtered_ds)) if good_indices is None else good_indices
             for i in it:
                 adv_im, storage = analysis.produce_adv_im(
@@ -97,27 +99,38 @@ def main(args: argparse.Namespace):
                     n_iter=args.n_iter,
                     use_sign=True,
                 )
+                analysis.plot_mean_proba_through_layers(
+                    storage,
+                    LAYER_NAMES,
+                    CONCEPTS,
+                    [0, args.n_iter],
+                    title=f"{class_name} -> {target}",
+                    save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_through_layers.png",
+                )
                 analysis.plot_logits(
                     storage,
                     label2id,
                     id2label,
                     labels=["tomato", "lemon", "orange", "apple", "banana"],
-                    save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}_{i}_logits.png",
+                    title=f"{class_name} -> {target}",
+                    save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_logits.png",
                 )
                 analysis.plot_cls_proba(
                     storage,
                     LAYER_NAMES,
                     CONCEPTS,
-                    save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}_{i}_proba.png",
+                    title=f"{class_name} -> {target}",
+                    save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_proba.png",
                 )
                 analysis.plot_proba_heatmap(
                     storage,
                     LAYER_NAMES,
                     CONCEPTS,
-                    save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}_{i}_heatmap_label.png",
+                    title=f"{class_name} -> {target}",
+                    save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_heatmap_label.png",
                 )
                 adv_pil_im = to_pil_image(adv_im.adv.cpu())
-                adv_pil_im.save(ASSETS_FOLDER / "figures" / f"{class_name}_{target}_{i}_adv.png")
+                adv_pil_im.save(ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_adv.png")
 
 
 def parse_args() -> argparse.Namespace:
@@ -128,6 +141,7 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default="mulsi/fruit-vegetable-concepts",
     )
+    parser.add_argument("--probe_ref", type=str, default=None)
     parser.add_argument("--epsilon", type=int, default=3)
     parser.add_argument("--n_iter", type=int, default=10)
     return parser.parse_args()
@@ -136,3 +150,8 @@ def parse_args() -> argparse.Namespace:
 if __name__ == "__main__":
     args = parse_args()
     main(args)
+
+    # Probe refs
+    # 29c94861ed9922843d4821f23e7e44fbb30f2de4 -> 3 CLF pre-labeling
+    # ? -> 12 CLF all post-labeling
+    # ? -> 12 CLF only_labeled post-labeling
