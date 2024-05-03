@@ -14,7 +14,7 @@ from datasets import load_dataset
 from huggingface_hub import HfApi
 from loguru import logger
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 from sklearn.model_selection import GridSearchCV, StratifiedShuffleSplit
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -69,12 +69,16 @@ def main(args):
     y_pred = best_clf.predict(X=train_ds["pixel_activation"])
     acc = accuracy_score(y_true=train_ds["pixel_label"], y_pred=y_pred)
     f1 = f1_score(y_true=train_ds["pixel_label"], y_pred=y_pred)
-    logger.info(f"train/accuracy: {acc} - train/f1: {f1}")
+    rec = recall_score(y_true=train_ds["pixel_label"], y_pred=y_pred)
+    pre = precision_score(y_true=train_ds["pixel_label"], y_pred=y_pred)
+    logger.info(f"train/accuracy: {acc} - train/f1: {f1} - train/recall: {rec} - train/precision: {pre}")
 
     y_pred = best_clf.predict(X=test_ds["pixel_activation"])
     acc = accuracy_score(y_true=test_ds["pixel_label"], y_pred=y_pred)
     f1 = f1_score(y_true=test_ds["pixel_label"], y_pred=y_pred)
-    logger.info(f"test/accuracy: {acc} - test/f1: {f1}")
+    rec = recall_score(y_true=test_ds["pixel_label"], y_pred=y_pred)
+    pre = precision_score(y_true=test_ds["pixel_label"], y_pred=y_pred)
+    logger.info(f"test/accuracy: {acc} - test/f1: {f1} - test/recall: {rec} - test/precision: {pre}")
 
     logger.info(f"Save model to {ASSETS_FOLDER}")
     torch_clf = CLF(pipe_clf=best_clf, classes=labeled_ds["train"].features["label"].names)
