@@ -82,7 +82,7 @@ def main(args: argparse.Namespace):
     )
 
     subfolder = "only_labeled" if args.only_labeled else "all"
-    os.makedirs(ASSETS_FOLDER / "figures" / "sanity_checks" / subfolder)
+    os.makedirs(ASSETS_FOLDER / "figures" / "sanity_checks" / subfolder, exist_ok=True)
     metrics = {}
     for layer_name in LAYER_NAMES:
         metrics[layer_name] = {}
