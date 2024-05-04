@@ -74,24 +74,44 @@ def produce_adv_im(
     return adv_im, storage
 
 
-def plot_logits(storage, label2id, label_ids=None, labels=None):
+def plot_logits(
+    storage,
+    label2id,
+    id2label,
+    label_ids=None,
+    labels=None,
+    title=None,
+    save_to=None,
+):
     if label_ids is None and labels is None:
         raise ValueError("You must specify label_ids or labels")
     if labels is not None:
         label_ids = [int(label2id[label]) for label in labels]
-    logit_dict = {label2id[label_id]: [] for label_id in label_ids}
+    logit_dict = {id2label[label_id]: [] for label_id in label_ids}
     for s in storage:
         for label_id in label_ids:
-            logit_dict[label2id[label_id]].append(s["logits"][label_id])
+            logit_dict[id2label[label_id]].append(s["logits"][label_id])
+    plt.figure()
     for label, logits in logit_dict.items():
-        plt.plot(range(1, len(logits) + 1), logits, label=label)
+        plt.plot(range(len(logits)), logits, label=label)
     plt.legend()
     plt.ylabel("Logit")
     plt.xlabel("Adv step")
-    plt.show()
+    plt.title(title)
+    if save_to is not None:
+        plt.savefig(save_to)
+        plt.close()
+    else:
+        plt.show()
 
 
-def plot_mean_proba(storage, layer_names, concepts):
+def plot_mean_proba(
+    storage,
+    layer_names,
+    concepts,
+    title=None,
+    save_to=None,
+):
     mean_pred_dict = {f"{layer_name}/{concept}": [] for layer_name in layer_names for concept in concepts}
     std_pred_dict = {f"{layer_name}/{concept}": [] for layer_name in layer_names for concept in concepts}
     for s in storage:
@@ -99,6 +119,7 @@ def plot_mean_proba(storage, layer_names, concepts):
             layer_name, concept = curve_name.split("/")
             mean_pred_dict[curve_name].append(s[f"vision_model.encoder.{layer_name}"][concept].mean())
             std_pred_dict[curve_name].append(s[f"vision_model.encoder.{layer_name}"][concept].std())
+    plt.figure()
     for label in mean_pred_dict.keys():
         plt.errorbar(
             range(len(mean_pred_dict[label])),
@@ -109,15 +130,27 @@ def plot_mean_proba(storage, layer_names, concepts):
     plt.legend()
     plt.ylabel("Mean concept proba")
     plt.xlabel("Adv step")
-    plt.show()
+    plt.title(title)
+    if save_to is not None:
+        plt.savefig(save_to)
+        plt.close()
+    else:
+        plt.show()
 
 
-def plot_cls_proba(storage, layer_names, concepts):
+def plot_cls_proba(
+    storage,
+    layer_names,
+    concepts,
+    title=None,
+    save_to=None,
+):
     pred_dict = {f"{layer_name}/{concept}": [] for layer_name in layer_names for concept in concepts}
     for s in storage:
         for curve_name in pred_dict.keys():
             layer_name, concept = curve_name.split("/")
             pred_dict[curve_name].append(s[f"vision_model.encoder.{layer_name}"][concept][0, 0])
+    plt.figure()
     for label in pred_dict.keys():
         plt.plot(
             range(len(pred_dict[label])),
@@ -127,10 +160,22 @@ def plot_cls_proba(storage, layer_names, concepts):
     plt.legend()
     plt.ylabel("CLS concept proba")
     plt.xlabel("Adv step")
-    plt.show()
+    plt.title(title)
+    if save_to is not None:
+        plt.savefig(save_to)
+        plt.close()
+    else:
+        plt.show()
 
 
-def plot_proba_heatmap(storage, layer_names, concepts):
+def plot_proba_heatmap(
+    storage,
+    layer_names,
+    concepts,
+    cmap="PuBuGn",
+    title=None,
+    save_to=None,
+):
     pred_dict = {f"{layer_name}/{concept}": [] for layer_name in layer_names for concept in concepts}
     for s in storage:
         for curve_name in pred_dict.keys():
@@ -138,16 +183,58 @@ def plot_proba_heatmap(storage, layer_names, concepts):
             pred_dict[curve_name].append(s[f"vision_model.encoder.{layer_name}"][concept][1:, 0])
     for label in pred_dict.keys():
         fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
+        plt.title(title)
         fig.tight_layout()
         ax1 = plt.subplot(1, 3, 1)
         ax1.set_title(f"{label} (step: 0)")
-        ax1.imshow(pred_dict[label][0].reshape(7, 7), cmap="hot")
+        ax1.imshow(pred_dict[label][0].reshape(7, 7), cmap=cmap, vmin=0, vmax=1)
         ax2 = plt.subplot(1, 3, 2)
         step = len(pred_dict[label]) // 2
-        ax2.set_title(f"{label} (step: {step-1})")
-        ax2.imshow(pred_dict[label][step - 1].reshape(7, 7), cmap="hot")
+        ax2.set_title(f"{label} (step: {step})")
+        ax2.imshow(pred_dict[label][step].reshape(7, 7), cmap=cmap, vmin=0, vmax=1)
         ax3 = plt.subplot(1, 3, 3)
         step = len(pred_dict[label])
         ax3.set_title(f"{label} (step: {step-1})")
-        ax3.imshow(pred_dict[label][step - 1].reshape(7, 7), cmap="hot")
+        ax3.imshow(pred_dict[label][step - 1].reshape(7, 7), cmap=cmap, vmin=0, vmax=1)
+        if save_to is not None:
+            plt.savefig(f"{save_to}".replace("label", label.replace("/", "_")))
+            plt.close()
+        else:
+            plt.show()
+
+
+def plot_mean_proba_through_layers(
+    storage,
+    layer_names,
+    concepts,
+    step_indices,
+    title=None,
+    save_to=None,
+):
+    mean_pred_dict = {f"{idx}/{concept}": [] for idx in step_indices for concept in concepts}
+    std_pred_dict = {f"{idx}/{concept}": [] for idx in step_indices for concept in concepts}
+    for step_index in step_indices:
+        s = storage[step_index]
+        for layer_name in layer_names:
+            for concept in concepts:
+                label_name = f"{step_index}/{concept}"
+                mean_pred_dict[label_name].append(s[f"vision_model.encoder.{layer_name}"][concept].mean())
+                std_pred_dict[label_name].append(s[f"vision_model.encoder.{layer_name}"][concept].std())
+    plt.figure()
+    for label in mean_pred_dict.keys():
+        plt.errorbar(
+            range(len(mean_pred_dict[label])),
+            mean_pred_dict[label],
+            yerr=std_pred_dict[label],
+            label=label,
+        )
+    plt.legend()
+    plt.ylabel("Mean concept proba")
+    plt.xlabel("layer")
+    plt.xticks(range(len(layer_names)), [layer_name.split(".")[1] for layer_name in layer_names])
+    plt.title(title)
+    if save_to is not None:
+        plt.savefig(save_to)
+        plt.close()
+    else:
         plt.show()

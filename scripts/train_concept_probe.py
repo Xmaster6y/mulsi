@@ -14,19 +14,20 @@ from datasets import load_dataset
 from huggingface_hub import HfApi
 from loguru import logger
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 from sklearn.model_selection import GridSearchCV, StratifiedShuffleSplit
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 from mulsi.clf import CLF
-from scripts.constants import ASSETS_FOLDER, HF_TOKEN
+from scripts.constants import ASSETS_FOLDER, HF_TOKEN, LABELED_CLASSES, CLASSES
 
 
 def main(args):
     logger.info(f"Load dataset from {args.dataset_name}")
     init_ds = load_dataset(args.dataset_name, args.config_name)
-    filtered_ds = init_ds.filter(lambda s: s[args.concept] is not None)
+    selected_classes = LABELED_CLASSES if args.only_labeled else CLASSES
+    filtered_ds = init_ds.filter(lambda s: s[args.concept] is not None and s["class"] in selected_classes)
     labeled_ds = filtered_ds.rename_column(args.concept, "label")
     labeled_ds = labeled_ds.class_encode_column("label")
     torch_ds = labeled_ds.select_columns(["activation", "label"]).with_format("torch")
@@ -45,7 +46,18 @@ def main(args):
     test_ds = dataset["test"]
     logger.info(f"Train shape: {train_ds.shape}, Test shape: {test_ds.shape}")
 
-    pipe_clf = Pipeline([("scaler", StandardScaler()), ("clf", LogisticRegression())])
+    pipe_clf = Pipeline(
+        [
+            ("scaler", StandardScaler()),
+            (
+                "clf",
+                LogisticRegression(
+                    penalty=args.penalty,
+                    solver=args.solver,
+                ),
+            ),
+        ]
+    )
     parameters = {"clf__max_iter": [200, 500], "clf__C": [1e-1, 1, 10]}
     sss = StratifiedShuffleSplit(n_splits=5, test_size=0.4, random_state=0)
     gs = GridSearchCV(pipe_clf, parameters, scoring="f1", cv=sss, n_jobs=-1)
@@ -57,12 +69,16 @@ def main(args):
     y_pred = best_clf.predict(X=train_ds["pixel_activation"])
     acc = accuracy_score(y_true=train_ds["pixel_label"], y_pred=y_pred)
     f1 = f1_score(y_true=train_ds["pixel_label"], y_pred=y_pred)
-    logger.info(f"train/accuracy: {acc} - train/f1: {f1}")
+    rec = recall_score(y_true=train_ds["pixel_label"], y_pred=y_pred)
+    pre = precision_score(y_true=train_ds["pixel_label"], y_pred=y_pred)
+    logger.info(f"train/accuracy: {acc} - train/f1: {f1} - train/recall: {rec} - train/precision: {pre}")
 
     y_pred = best_clf.predict(X=test_ds["pixel_activation"])
     acc = accuracy_score(y_true=test_ds["pixel_label"], y_pred=y_pred)
     f1 = f1_score(y_true=test_ds["pixel_label"], y_pred=y_pred)
-    logger.info(f"train/accuracy: {acc} - train/f1: {f1}")
+    rec = recall_score(y_true=test_ds["pixel_label"], y_pred=y_pred)
+    pre = precision_score(y_true=test_ds["pixel_label"], y_pred=y_pred)
+    logger.info(f"test/accuracy: {acc} - test/f1: {f1} - test/recall: {rec} - test/precision: {pre}")
 
     logger.info(f"Save model to {ASSETS_FOLDER}")
     torch_clf = CLF(pipe_clf=best_clf, classes=labeled_ds["train"].features["label"].names)
@@ -85,6 +101,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dataset_name", type=str, default="mulsi/fruit-vegetable-activations")
     parser.add_argument("--config_name", type=str, default="layers.11")
     parser.add_argument("--concept", type=str, default="yellow")
+    parser.add_argument("--penalty", type=str, default="l2")
+    parser.add_argument("--solver", type=str, default="lbfgs")
+    parser.add_argument("--only_labeled", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--push_to_hub", action=argparse.BooleanOptionalAction, default=False)
     return parser.parse_args()
 

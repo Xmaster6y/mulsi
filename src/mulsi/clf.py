@@ -14,6 +14,14 @@ class CLF(torch.nn.Module):
         self._coef = torch.tensor(pipe_clf.named_steps["clf"].coef_)
         self._intercept = torch.tensor(pipe_clf.named_steps["clf"].intercept_)
 
+    @property
+    def id2label(self):
+        return dict(enumerate(self._classes))
+
+    @property
+    def label2id(self):
+        return {label: i for i, label in enumerate(self._classes)}
+
     def forward(self, x):
         x = (x - self._mean) / self._scale
         return torch.matmul(x, self._coef.T) + self._intercept
