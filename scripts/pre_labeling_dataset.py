@@ -85,7 +85,7 @@ def main(args):
                 continue
             key = item["id"]
             concepts = get_pre_labeled_concepts(item)
-            if "imenelydiaker" not in votes:
+            if "imenelydiaker" not in votes[key]:
                 continue
             votes[key] = {"imenelydiaker": concepts}
 
