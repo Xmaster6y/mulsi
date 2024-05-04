@@ -238,3 +238,21 @@ def plot_mean_proba_through_layers(
         plt.close()
     else:
         plt.show()
+
+
+def plot_metric_boxes(
+    data,
+    title=None,
+    save_to=None,
+):
+    labels = next(iter(data.values())).keys()
+    boxed_data = list(zip(*[m.values() for m in data.values()]))
+    plt.boxplot(boxed_data, notch=True, vert=True, patch_artist=True, labels=labels)
+    plt.legend()
+    plt.ylabel("Metric value")
+    plt.title(title)
+    if save_to is not None:
+        plt.savefig(save_to)
+        plt.close()
+    else:
+        plt.show()
