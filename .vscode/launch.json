@@ -41,6 +41,14 @@
             "module": "scripts.make_activation_dataset",
             "console": "integratedTerminal",
             "justMyCode": false
+        },
+        {
+            "name": "Script Probes Sanity Checks",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.analysis.probes_sanity_checks",
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }

@@ -123,6 +123,10 @@ LABELED_CLASSES = [
     "cabbage",
     "bell pepper",
     "carrot",
+    "turnip",
+    "mango",
+    "capsicum",
+    "sweetpotato",
 ]
 
 assert len(CLASSES) == len(CLASS_CONCEPTS_VALUES.keys())
