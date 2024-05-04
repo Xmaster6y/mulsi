@@ -41,6 +41,14 @@
             "module": "scripts.make_activation_dataset",
             "console": "integratedTerminal",
             "justMyCode": false
+        },
+        {
+            "name": "Script Probes Analysis",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.analysis.probes_analysis",
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }
