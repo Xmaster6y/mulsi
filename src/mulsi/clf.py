@@ -16,7 +16,7 @@ class CLF(torch.nn.Module):
 
     @property
     def id2label(self):
-        return {i: label for i, label in enumerate(self._classes)}
+        return dict(enumerate(self._classes))
 
     @property
     def label2id(self):
