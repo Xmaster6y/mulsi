@@ -81,7 +81,8 @@ def main(args: argparse.Namespace):
         revision=args.probe_ref,
     )
 
-    os.makedirs(ASSETS_FOLDER / "figures" / "sanity_checks")
+    subfolder = "only_labeled" if args.only_labeled else "all"
+    os.makedirs(ASSETS_FOLDER / "figures" / "sanity_checks" / subfolder)
     metrics = {}
     for layer_name in LAYER_NAMES:
         metrics[layer_name] = {}
@@ -120,7 +121,11 @@ def main(args: argparse.Namespace):
             analysis.plot_metric_boxes(
                 metrics[layer_name][concept]["per_pixel"],
                 title=f"{layer_name}/{concept}",
-                save_to=ASSETS_FOLDER / "figures" / "sanity_checks" / f"{layer_name}_{concept}_pixel_boxes.png",
+                save_to=ASSETS_FOLDER
+                / "figures"
+                / "sanity_checks"
+                / subfolder
+                / f"{layer_name}_{concept}_pixel_boxes.png",
             )
 
 
