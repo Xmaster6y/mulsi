@@ -1,4 +1,4 @@
-"""Script analyse FGSM adversarial images.
+"""Script to analyse FGSM adversarial images.
 
 Run with:
 ```
