@@ -54,11 +54,12 @@ def main(args):
                 LogisticRegression(
                     penalty=args.penalty,
                     solver=args.solver,
+                    max_iter=1000,
                 ),
             ),
         ]
     )
-    parameters = {"clf__max_iter": [200, 500], "clf__C": [1e-1, 1, 10]}
+    parameters = {"clf__C": [1e-1, 1, 10]}
     sss = StratifiedShuffleSplit(n_splits=5, test_size=0.4, random_state=0)
     gs = GridSearchCV(pipe_clf, parameters, scoring="f1", cv=sss, n_jobs=-1)
 
