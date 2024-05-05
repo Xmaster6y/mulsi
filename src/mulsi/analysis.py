@@ -3,6 +3,7 @@
 import re
 
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import torch
 from torchvision.transforms.functional import pil_to_tensor
 
@@ -248,7 +249,44 @@ def plot_metric_boxes(
     labels = next(iter(data.values())).keys()
     boxed_data = list(zip(*[m.values() for m in data.values()]))
     plt.boxplot(boxed_data, notch=True, vert=True, patch_artist=True, labels=labels)
-    plt.legend()
+    plt.ylabel("Metric value")
+    plt.title(title)
+    if save_to is not None:
+        plt.savefig(save_to)
+        plt.close()
+    else:
+        plt.show()
+
+
+def plot_metric_boxes_per_layer(
+    metrics,
+    concept,
+    title=None,
+    save_to=None,
+):
+    boxed_data = []
+    tick_labels = [layer_name for layer_name in metrics.keys()]
+    color_labels = ["precision", "recall", "f1"]
+    for layer_metrics in metrics.values():
+        data = layer_metrics[concept]["per_pixel"]
+        boxed_data += list(zip(*[m.values() for m in data.values()]))
+
+    positions = [[i - 0.75, i, i + 0.75] for i in range(2, len(tick_labels) * 3 + 2, 3)]
+    positions = [item for sublist in positions for item in sublist]
+    bplot = plt.boxplot(boxed_data, notch=True, vert=True, patch_artist=True, positions=positions)
+
+    colors = ["pink", "lightblue", "lightgreen"]
+    all_colors = colors * len(metrics)
+    for patch, color in zip(bplot["boxes"], all_colors):
+        patch.set_facecolor(color)
+
+    handles = []
+    for color, label in zip(colors, color_labels):
+        handles.append(mpatches.Patch(color=color, label=label))
+
+    plt.xlabel("layer")
+    plt.xticks(range(2, len(tick_labels) * 3 + 2, 3), [layer_name.split(".")[1] for layer_name in tick_labels])
+    plt.legend(handles=handles)
     plt.ylabel("Metric value")
     plt.title(title)
     if save_to is not None:

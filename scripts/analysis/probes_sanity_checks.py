@@ -22,8 +22,8 @@ from mulsi.adversarial import LRClfLoss
 from scripts.constants import HF_TOKEN, ASSETS_FOLDER, LABELED_CLASSES, CLASSES
 from mulsi import analysis
 
-LAYER_NAMES = ["layers.0", "layers.6", "layers.11"]
-CONCEPTS = ["yellow", "red", "sphere", "ovaloid"]
+LAYER_NAMES = [f"layers.{i}" for i in range(12)]
+CONCEPTS = ["yellow", "red", "sphere", "ovaloid", "stem", "cylinder", "pulp"]
 
 hf_api = HfApi(token=HF_TOKEN)
 
@@ -127,6 +127,14 @@ def main(args: argparse.Namespace):
                 / subfolder
                 / f"{layer_name}_{concept}_pixel_boxes.png",
             )
+
+    for concept in CONCEPTS:
+        analysis.plot_metric_boxes_per_layer(
+            metrics,
+            concept,
+            title=f"{concept}",
+            save_to=ASSETS_FOLDER / "figures" / "sanity_checks" / subfolder / f"{concept}_layer_boxes.png",
+        )
 
 
 def parse_args() -> argparse.Namespace:

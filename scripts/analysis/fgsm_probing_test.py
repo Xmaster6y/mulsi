@@ -22,12 +22,12 @@ from mulsi.adversarial import LRClfLoss
 from scripts.constants import HF_TOKEN, ASSETS_FOLDER
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-LAYER_NAMES = ["layers.0", "layers.6", "layers.11"]
-CONCEPTS = ["yellow", "red", "sphere", "ovaloid"]
+LAYER_NAMES = [f"layers.{i}" for i in range(12)]
+CONCEPTS = ["yellow", "red", "sphere", "ovaloid", "stem", "cylinder", "pulp"]
 GOOD_INDICES = {
-    "banana": [],  # None for all
+    "banana": [0],
     "lemon": [0, 6, 8],
-    "tomato": [],
+    "tomato": [0],
 }
 
 hf_api = HfApi(token=HF_TOKEN)
@@ -99,14 +99,32 @@ def main(args: argparse.Namespace):
                     n_iter=args.n_iter,
                     use_sign=True,
                 )
-                analysis.plot_mean_proba_through_layers(
-                    storage,
-                    LAYER_NAMES,
-                    CONCEPTS,
-                    [0, args.n_iter],
-                    title=f"{class_name} -> {target}",
-                    save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_through_layers.png",
-                )
+                for concept in CONCEPTS:
+                    analysis.plot_mean_proba_through_layers(
+                        storage,
+                        LAYER_NAMES,
+                        [concept],
+                        [0, args.n_iter],
+                        title=f"{class_name} -> {target}",
+                        save_to=ASSETS_FOLDER
+                        / "figures"
+                        / f"{class_name}_{target}"
+                        / f"{i}_{concept}_through_layers.png",
+                    )
+                    analysis.plot_cls_proba(
+                        storage,
+                        LAYER_NAMES,
+                        [concept],
+                        title=f"{class_name} -> {target}",
+                        save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_{concept}_proba.png",
+                    )
+                    analysis.plot_mean_proba(
+                        storage,
+                        LAYER_NAMES,
+                        [concept],
+                        title=f"{class_name} -> {target}",
+                        save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_{concept}_mean_proba.png",
+                    )
                 analysis.plot_logits(
                     storage,
                     label2id,
@@ -114,13 +132,6 @@ def main(args: argparse.Namespace):
                     labels=["tomato", "lemon", "orange", "apple", "banana"],
                     title=f"{class_name} -> {target}",
                     save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_logits.png",
-                )
-                analysis.plot_cls_proba(
-                    storage,
-                    LAYER_NAMES,
-                    CONCEPTS,
-                    title=f"{class_name} -> {target}",
-                    save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_proba.png",
                 )
                 analysis.plot_proba_heatmap(
                     storage,
