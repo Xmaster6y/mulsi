@@ -2,6 +2,7 @@
 
 import re
 
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import torch
@@ -9,6 +10,9 @@ from torchvision.transforms.functional import pil_to_tensor
 
 from mulsi.adversarial import AdversarialImage
 from mulsi.hook import HookConfig, MeasureHook
+
+COLOR_MAP = matplotlib.colormaps["RdYlBu_r"].resampled(1000)
+NORM = matplotlib.colors.Normalize(vmin=0, vmax=1, clip=False)
 
 
 def produce_adv_im(
@@ -121,12 +125,13 @@ def plot_mean_proba(
             mean_pred_dict[curve_name].append(s[f"vision_model.encoder.{layer_name}"][concept].mean())
             std_pred_dict[curve_name].append(s[f"vision_model.encoder.{layer_name}"][concept].std())
     plt.figure()
-    for label in mean_pred_dict.keys():
+    for i, label in enumerate(mean_pred_dict.keys()):
         plt.errorbar(
             range(len(mean_pred_dict[label])),
             mean_pred_dict[label],
             yerr=std_pred_dict[label],
             label=label,
+            c=COLOR_MAP(NORM(i / (11))),
         )
     plt.legend()
     plt.ylabel("Mean concept proba")
@@ -152,11 +157,12 @@ def plot_cls_proba(
             layer_name, concept = curve_name.split("/")
             pred_dict[curve_name].append(s[f"vision_model.encoder.{layer_name}"][concept][0, 0])
     plt.figure()
-    for label in pred_dict.keys():
+    for i, label in enumerate(pred_dict.keys()):
         plt.plot(
             range(len(pred_dict[label])),
             torch.stack(pred_dict[label]),
             label=label,
+            c=COLOR_MAP(NORM(i / (11))),
         )
     plt.legend()
     plt.ylabel("CLS concept proba")

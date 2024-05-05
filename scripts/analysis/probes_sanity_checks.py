@@ -23,7 +23,7 @@ from scripts.constants import HF_TOKEN, ASSETS_FOLDER, LABELED_CLASSES, CLASSES
 from mulsi import analysis
 
 LAYER_NAMES = [f"layers.{i}" for i in range(12)]
-CONCEPTS = ["yellow", "red", "sphere", "ovaloid", "stem", "cylinder", "pulp"]
+CONCEPTS = ["yellow", "red", "sphere", "ovaloid", "stem", "cylinder", "pulp", "green"]
 
 hf_api = HfApi(token=HF_TOKEN)
 
@@ -118,15 +118,15 @@ def main(args: argparse.Namespace):
             logger.info(
                 f"Layer: {layer_name}, Concept: {concept}, Global metrics: {metrics[layer_name][concept]['global']}"
             )
-            analysis.plot_metric_boxes(
-                metrics[layer_name][concept]["per_pixel"],
-                title=f"{layer_name}/{concept}",
-                save_to=ASSETS_FOLDER
-                / "figures"
-                / "sanity_checks"
-                / subfolder
-                / f"{layer_name}_{concept}_pixel_boxes.png",
-            )
+            # analysis.plot_metric_boxes(
+            #     metrics[layer_name][concept]["per_pixel"],
+            #     title=f"{layer_name}/{concept}",
+            #     save_to=ASSETS_FOLDER
+            #     / "figures"
+            #     / "sanity_checks"
+            #     / subfolder
+            #     / f"{layer_name}_{concept}_pixel_boxes.png",
+            # )
 
     for concept in CONCEPTS:
         analysis.plot_metric_boxes_per_layer(

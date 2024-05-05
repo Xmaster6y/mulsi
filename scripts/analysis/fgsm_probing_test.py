@@ -25,7 +25,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LAYER_NAMES = [f"layers.{i}" for i in range(12)]
 CONCEPTS = ["yellow", "red", "sphere", "ovaloid", "stem", "cylinder", "pulp"]
 GOOD_INDICES = {
-    "banana": [0],
+    "banana": [1],
     "lemon": [0, 6, 8],
     "tomato": [0],
 }
@@ -133,13 +133,13 @@ def main(args: argparse.Namespace):
                     title=f"{class_name} -> {target}",
                     save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_logits.png",
                 )
-                analysis.plot_proba_heatmap(
-                    storage,
-                    LAYER_NAMES,
-                    CONCEPTS,
-                    title=f"{class_name} -> {target}",
-                    save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_heatmap_label.png",
-                )
+                # analysis.plot_proba_heatmap(
+                #     storage,
+                #     LAYER_NAMES,
+                #     CONCEPTS,
+                #     title=f"{class_name} -> {target}",
+                #     save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_heatmap_label.png",
+                # )
                 adv_pil_im = to_pil_image(adv_im.adv.cpu())
                 adv_pil_im.save(ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_adv.png")
 
