@@ -2,7 +2,7 @@
 
 Run with:
 ```
-poetry run python -m scripts.analysis.probes_sanity_checks
+poetry run python -m scripts.analysis.probes_mixed_checks
 ```
 """
 
@@ -24,6 +24,7 @@ from mulsi import analysis
 
 LAYER_NAMES = [f"layers.{i}" for i in range(12)]
 CONCEPTS = ["yellow", "red", "sphere", "ovaloid", "stem", "cylinder", "pulp", "green"]
+IDX = 0
 
 hf_api = HfApi(token=HF_TOKEN)
 
@@ -102,7 +103,8 @@ def main(args: argparse.Namespace):
             pred_dataset = torch_ds.map(map_fn, remove_columns=["activation", "label", "class"], batched=True)
 
             with open(
-                ASSETS_FOLDER / f"{dataset_name.replace('concepts', 'probes')}/data/{layer_name}/{concept}/clf.pt",
+                ASSETS_FOLDER
+                / f"{dataset_name.replace('concepts', 'probes')}/data/{LAYER_NAMES[IDX]}/{concept}/clf.pt",
                 "rb",
             ) as f:
                 probe = torch.load(f)
@@ -118,27 +120,22 @@ def main(args: argparse.Namespace):
             logger.info(
                 f"Layer: {layer_name}, Concept: {concept}, Global metrics: {metrics[layer_name][concept]['global']}"
             )
-            # analysis.plot_metric_boxes(
-            #     metrics[layer_name][concept]["per_pixel"],
-            #     title=f"{layer_name}/{concept}",
-            #     save_to=ASSETS_FOLDER
-            #     / "figures"
-            #     / "sanity_checks"
-            #     / subfolder
-            #     / f"{layer_name}_{concept}_pixel_boxes.png",
-            # )
 
     for concept in CONCEPTS:
         analysis.plot_metric_boxes_per_layer(
             metrics,
             concept,
-            title=f"{concept}",
-            save_to=ASSETS_FOLDER / "figures" / "sanity_checks" / subfolder / f"{concept}_layer_boxes.png",
+            title=f"{LAYER_NAMES[IDX]}/{concept}",
+            save_to=ASSETS_FOLDER
+            / "figures"
+            / "sanity_checks"
+            / subfolder
+            / f"{LAYER_NAMES[IDX]}_{concept}_mixed_boxes.png",
         )
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser("probes-sanity-checks")
+    parser = argparse.ArgumentParser("probes-mixed-checks")
     parser.add_argument("--mode", type=str, default="torch_clf")
     parser.add_argument(
         "--dataset_name",
