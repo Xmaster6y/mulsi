@@ -104,7 +104,7 @@ def main(args: argparse.Namespace):
                         storage,
                         LAYER_NAMES,
                         [concept],
-                        [0, args.n_iter],
+                        [0, args.n_iter // 2, args.n_iter],
                         title=f"{class_name} -> {target}",
                         save_to=ASSETS_FOLDER
                         / "figures"
@@ -113,14 +113,14 @@ def main(args: argparse.Namespace):
                     )
                     analysis.plot_cls_proba(
                         storage,
-                        LAYER_NAMES,
+                        [f"layers.{i}" for i in [0, 4, 8, 11]],
                         [concept],
                         title=f"{class_name} -> {target}",
                         save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_{concept}_proba.png",
                     )
                     analysis.plot_mean_proba(
                         storage,
-                        LAYER_NAMES,
+                        [f"layers.{i}" for i in [0, 4, 8, 11]],
                         [concept],
                         title=f"{class_name} -> {target}",
                         save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_{concept}_mean_proba.png",

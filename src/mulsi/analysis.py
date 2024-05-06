@@ -131,7 +131,8 @@ def plot_mean_proba(
             mean_pred_dict[label],
             yerr=std_pred_dict[label],
             label=label,
-            c=COLOR_MAP(NORM(i / (11))),
+            capsize=5,
+            c=COLOR_MAP(NORM(i / (len(mean_pred_dict) - 1))),
         )
     plt.legend()
     plt.ylabel("Mean concept proba")
@@ -162,7 +163,7 @@ def plot_cls_proba(
             range(len(pred_dict[label])),
             torch.stack(pred_dict[label]),
             label=label,
-            c=COLOR_MAP(NORM(i / (11))),
+            c=COLOR_MAP(NORM(i / (len(pred_dict) - 1))),
         )
     plt.legend()
     plt.ylabel("CLS concept proba")
@@ -228,12 +229,14 @@ def plot_mean_proba_through_layers(
                 mean_pred_dict[label_name].append(s[f"vision_model.encoder.{layer_name}"][concept].mean())
                 std_pred_dict[label_name].append(s[f"vision_model.encoder.{layer_name}"][concept].std())
     plt.figure()
-    for label in mean_pred_dict.keys():
+    for i, label in enumerate(mean_pred_dict.keys()):
         plt.errorbar(
             range(len(mean_pred_dict[label])),
             mean_pred_dict[label],
             yerr=std_pred_dict[label],
             label=label,
+            capsize=5,
+            c=COLOR_MAP(NORM(i / (len(mean_pred_dict) - 1))),
         )
     plt.legend()
     plt.ylabel("Mean concept proba")
