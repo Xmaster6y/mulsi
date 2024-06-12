@@ -38,8 +38,10 @@ def main(args):
         configs = [f"layers.{i}" for i in range(12)]
     else:
         configs = [args.config_name]
-    datasets = []
+    train_datasets = []
+    test_datasets = []
     for config_name in configs:
+        logger.info(f"Load dataset for config: {config_name}")
         init_ds = load_dataset(args.dataset_name, config_name)
         selected_classes = LABELED_CLASSES if args.only_labeled else CLASSES
         filtered_ds = init_ds.filter(lambda s: s[args.concept] is not None and s["class"] in selected_classes)
@@ -47,12 +49,12 @@ def main(args):
         labeled_ds = labeled_ds.class_encode_column("label")
         torch_ds = labeled_ds.select_columns(["activation", "label"]).with_format("torch")
 
-        datasets.append(torch_ds.map(map_fn, remove_columns=["activation", "label"], batched=True))
+        _dataset = torch_ds.map(map_fn, remove_columns=["activation", "label"], batched=True)
+        train_datasets.append(_dataset["train"])
+        test_datasets.append(_dataset["test"])
 
-    dataset = concatenate_datasets(datasets)
-
-    train_ds = dataset["train"]
-    test_ds = dataset["test"]
+    train_ds = concatenate_datasets(train_datasets)
+    test_ds = concatenate_datasets(test_datasets)
     logger.info(f"Train shape: {train_ds.shape}, Test shape: {test_ds.shape}")
 
     pipe_clf = Pipeline(
