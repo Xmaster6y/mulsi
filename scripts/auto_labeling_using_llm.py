@@ -7,15 +7,17 @@ poetry run python -m scripts.pre_labeling_dataset
 """
 
 import os
+import random
 import json
 import argparse
+import base64
+from io import BytesIO
 
+from PIL import Image
 import jsonlines
 from huggingface_hub import HfApi
 from loguru import logger
-
-from langchain_core.messages import HumanMessage
-from langchain_openai import AzureChatOpenAI
+from openai import AzureOpenAI, ChatCompletion
 
 from scripts.constants import (
     ASSETS_FOLDER,
@@ -30,33 +32,6 @@ from scripts.constants import (
 from dotenv import load_dotenv
 
 load_dotenv()
-
-PROMPT = """\
-Given an image and its class, provide the cnocepts that are present in the image in the following format:
-
-You may choose from the following concepts only:
-{concepts}
-
-Provide the classification in the following format:
-Classification:::
-Concepts: (concept: e.g., red, sphere, stem, etc.)
-
-Examples:
-Image: {imaage_example_1}
-Class: {class_example_1}
-Concepts: {concepts_example_1}
-
-Image: {imaage_example_2}
-Class: {class_example_2}
-Concepts: {concepts_example_2}
-
-Now here is an image and its class:
-Image: {image}
-Class: {class_}
-
-Classification:::
-Concepts:
-"""
 
 
 def save_metadata(hf_api: HfApi, metadata: dict, split: str, push_to_hub: bool = False):
@@ -107,30 +82,144 @@ def compute_concepts(votes):
     return {c: vote_sum[c] > 0 if vote_sum[c] != 0 else None for c in CONCEPTS}
 
 
+class OpenAIRequest:
+    def __init__(self):
+        self.client = AzureOpenAI(
+            openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],
+            azure_deployment=os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"],
+        )
+        self.concepts = ",".join(CONCEPTS)
+        print(self.concepts)
+    
+    def __call__(self, item: dict, icl: dict, **kwargs) -> ChatCompletion:
+        message = [
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": """\
+You are a helpful assistant that can help annotating images. Answer by giving the list of concepts you can see in the provided image.
+
+Given an image and its class, provide the concepts that are present in the image.
+
+You may choose from the following concepts only:
+{self.concepts}
+
+Provide the classification in the following format:
+Concepts: (concept: e.g., red, sphere, stem, etc.)
+"""
+                    }
+                ],
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"""\
+Here is an image and its class:
+
+Class: {icl["class"]}\nImage:
+"""
+                    },
+                    {
+                        "type": "image",
+                        "image": icl["image"]
+                    }
+                ],
+            },
+            {
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"Concepts: {icl["concepts"]}"
+                    }
+                ],
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"Now here is another image and its class, provide the concepts: \nClass: {item["class"]}\nImage:"
+                    },
+                    {
+                        "type": "image",
+                        "image": item["image"]
+                    }
+                ],
+            },
+            {
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Concepts:"
+                    }
+                ]
+            }
+        ]
+
+        return self.client.chat.completions.create(
+            model="gpt-4o",
+            messages=[message],
+            **kwargs
+        )
+
+def image2base64(image: BytesIO) -> str:
+    # buffered = BytesIO()
+    # image.save(buffered, format="JPEG")
+    # return base64.b64encode(buffered.getvalue()).decode("utf-8")
+    return base64.b64encode(image.getvalue()).decode()
+
+def get_icl_example_dict(metadata: dict, split: str) -> dict:
+    labeled_items_classes = ["tomato", "lemon", "kiwi", "lettuce", "cabbage", "paprika", "beetroots", "bell pepper"]
+    labeled_items = [item for item in metadata[split] if item["class"] in labeled_items_classes]
+
+    images = [item["image"] for item in labeled_items]
+    classes = [item["class"] for item in labeled_items]
+    concepts = [get_pre_labeled_concepts(item) for item in labeled_items] #TODO: remove and replace with correct function
+
+    rand_idx = random.randint(0, len(labeled_items) - 1) # TODO: remove
+
+    return {
+        "class": classes[rand_idx],
+        "image": image2base64(images[rand_idx]),
+        "concepts": ",".join([c for c in concepts[rand_idx] if concepts[rand_idx][c]]),
+    }   
+
 def main(args):
     hf_api = HfApi(token=HF_TOKEN)
-
-    model = AzureChatOpenAI(
-        openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],
-        azure_deployment=os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"],
-    )
 
     logger.info("Download metadata and votes")
     metadata, votes = get_votes(hf_api)
 
     for split in SPLITS:
         for item in metadata[split]:
+            print(type(item))
+            print(item.keys())
+
             if item["class"] in LABELED_CLASSES:
                 continue
             key = item["id"]
 
-            # Call VLM
-            message = HumanMessage(
-                content=PROMPT.format(concepts=", ".join(CONCEPTS), class_=item["class"]),
+            item_dict = {
+                "class": item["class"],
+                "image": image2base64(item["image"]), # TODO: fix open image
+            }
+
+            icl_dict = get_icl_example_dict(metadata=metadata, split=split)
+
+            response = OpenAIRequest(
+                item=item_dict,
+                icl=icl_dict, # TODO: build the ICL dict manually
+                max_tokens=100,
                 temperature=0,
             )
-            response = model.invoke([message])
-            pred = response.content.split(":")[1].strip() if ":" in response.content else response.content
+                
+            pred = response.choices[0].message.split(":")[1].strip() if ":" in response.choices[0].message else response.choices[0].message
             print(pred)
             concepts = get_pre_labeled_concepts(item)
             if "imenelydiaker" not in votes[key]:
@@ -170,7 +259,7 @@ def main(args):
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser("pre-label-dataset")
+    parser = argparse.ArgumentParser("auto-label-dataset")
     parser.add_argument("--push_to_hub", action=argparse.BooleanOptionalAction, default=False)
     return parser.parse_args()
 
