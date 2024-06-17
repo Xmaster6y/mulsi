@@ -205,7 +205,8 @@ def main(args):
 
             icl_dict = get_icl_example_dict(metadata=metadata, split=split)
 
-            response = OpenAIRequest(
+            openai_request = OpenAIRequest()
+            response = openai_request(  
                 item=item_dict,
                 icl=icl_dict, # TODO: build the ICL dict manually
                 max_tokens=100,
