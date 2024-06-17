@@ -83,7 +83,7 @@ def compute_concepts(votes):
 
 
 class OpenAIRequest:
-    def __init__(self):
+    def __init__(self, model: str="gpt-4o"):
         self.client = AzureOpenAI(
             api_version=os.environ["AZURE_OPENAI_API_VERSION"],
             azure_deployment=os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"],
@@ -163,7 +163,7 @@ Class: {icl["class"]}\nImage:
         ]
 
         return self.client.chat.completions.create(
-            model="gpt-4o",
+            model=self.model,
             messages=message,
             **kwargs
         )
@@ -275,6 +275,8 @@ def main(args):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("auto-label-dataset")
+    parser.add_argument(
+        "--model", type=str, default="gpt-4o")
     parser.add_argument(
         "--push_to_hub", action=argparse.BooleanOptionalAction, default=False)
     return parser.parse_args()
