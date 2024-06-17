@@ -30,8 +30,7 @@ hf_api = HfApi(token=HF_TOKEN)
 
 
 def probe_single_eval(y_true, y_pred):
-    metrics = {}
-    metrics["precision"] = precision_score(y_true, y_pred)
+    metrics = {"precision": precision_score(y_true, y_pred)}
     metrics["recall"] = recall_score(y_true, y_pred)
     metrics["f1"] = f1_score(y_true, y_pred)
     return metrics
