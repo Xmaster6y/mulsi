@@ -81,6 +81,7 @@ def compute_concepts(votes):
             vote_sum[c] += 2 * vote[c] - 1
     return {c: vote_sum[c] > 0 if vote_sum[c] != 0 else None for c in CONCEPTS}
 
+
 class OpenAIRequest:
     def __init__(self):
         self.client = AzureOpenAI(
@@ -88,8 +89,9 @@ class OpenAIRequest:
             azure_deployment=os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"],
         )
         self.concepts = ",".join(CONCEPTS)
-    
+
     def __call__(self, item: dict, icl: dict, **kwargs) -> ChatCompletion:
+        """Send a request to the OpenAI API."""
         message = [
             {
                 "role": "system",
@@ -166,24 +168,42 @@ Class: {icl["class"]}\nImage:
             **kwargs
         )
 
+
 def image2base64(image: BytesIO) -> str:
+    """Convert image to base64 string."""
     return base64.b64encode(image.getvalue()).decode("utf-8")
 
-def get_icl_example_dict(metadata: dict, split: str) -> dict:
-    labeled_items_classes = ["tomato", "lemon", "kiwi", "lettuce", "cabbage", "paprika", "beetroots", "bell pepper"]
-    labeled_items = [item for item in metadata[split] if item["class"] in labeled_items_classes]
 
-    images = [item["image"] for item in labeled_items]
-    classes = [item["class"] for item in labeled_items]
-    concepts = [get_pre_labeled_concepts(item) for item in labeled_items] #TODO: remove and replace with correct function
+def get_icl_example_dict() -> dict:
+    """Build ICL example manually."""
+    icl_dict = {
+        "class": "lettuce",
+        # TODO: update path
+        "image": image2base64(BytesIO(open("images/00000000.jpg", "rb").read())),
+        "concepts": {
+            "leaf": True,
+            "green": True,
+            "stem": False,
+            "red": False,
+            "black": False,
+            "blue": False,
+            "ovaloid": False,
+            "sphere": False,
+            "cylinder": False,
+            "cube": False,
+            "brown": False,
+            "orange": False,
+            "yellow": False,
+            "white": False,
+            "tail": False,
+            "seed": False,
+            "pulp": False,
+            "soil": False,
+            "tree": False,
+        }
+    }
+    return icl_dict
 
-    rand_idx = random.randint(0, len(labeled_items) - 1) # TODO: remove
-
-    return {
-        "class": classes[rand_idx],
-        "image": image2base64(images[rand_idx]),
-        "concepts": ",".join([c for c in concepts[rand_idx] if concepts[rand_idx][c]]),
-    }   
 
 def main(args):
     hf_api = HfApi(token=HF_TOKEN)
@@ -199,19 +219,19 @@ def main(args):
 
             item_dict = {
                 "class": item["class"],
-                "image": image2base64(item["image"]), # TODO: fix open image
+                "image": image2base64(item["image"]),  # TODO: fix open image
             }
 
-            icl_dict = get_icl_example_dict(metadata=metadata, split=split)
+            icl_dict = get_icl_example_dict()
 
             openai_request = OpenAIRequest()
-            response = openai_request(  
+            response = openai_request(
                 item=item_dict,
-                icl=icl_dict, # TODO: build the ICL dict manually
+                icl=icl_dict,
                 max_tokens=200,
                 temperature=0,
             )
-                
+
             pred = response.choices[0].message.content
             pred = pred[pred.rfind("{"):pred.rfind("}")]
             print(pred)
@@ -255,7 +275,8 @@ def main(args):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("auto-label-dataset")
-    parser.add_argument("--push_to_hub", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument(
+        "--push_to_hub", action=argparse.BooleanOptionalAction, default=False)
     return parser.parse_args()
 
 
