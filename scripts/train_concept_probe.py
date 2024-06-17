@@ -25,11 +25,7 @@ from scripts.constants import ASSETS_FOLDER, HF_TOKEN, LABELED_CLASSES, CLASSES
 
 def map_fn(s_batched):
     b, p, h = s_batched["activation"].shape
-    new_s_batched = {
-        "pixel_activation": einops.rearrange(
-            s_batched["activation"], "b p h -> (b p) h"
-        )
-    }
+    new_s_batched = {"pixel_activation": einops.rearrange(s_batched["activation"], "b p h -> (b p) h")}
     new_s_batched["pixel_label"] = einops.repeat(s_batched["label"], "b -> (b p)", p=p)
     new_s_batched["pixel_index"] = einops.repeat(torch.arange(p), "p -> (b p)", b=b)
     return new_s_batched
