@@ -132,3 +132,4 @@ dmypy.json
 ignored
 wandb
 *secret*
+*.DS_Store

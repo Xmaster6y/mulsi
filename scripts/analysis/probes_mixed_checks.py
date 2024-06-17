@@ -2,7 +2,7 @@
 
 Run with:
 ```
-poetry run python -m scripts.analysis.probes_sanity_checks
+poetry run python -m scripts.analysis.probes_mixed_checks
 ```
 """
 
@@ -23,14 +23,14 @@ from scripts.constants import HF_TOKEN, ASSETS_FOLDER, LABELED_CLASSES, CLASSES
 from mulsi import analysis
 
 LAYER_NAMES = [f"layers.{i}" for i in range(12)]
-CONCEPTS = ["yellow", "red", "sphere", "ovaloid", "stem", "cylinder", "pulp", "green"]
+CONCEPTS = ["stem", "cylinder", "pulp", "green"]
+IDX = 0
 
 hf_api = HfApi(token=HF_TOKEN)
 
 
 def probe_single_eval(y_true, y_pred):
-    metrics = {}
-    metrics["precision"] = precision_score(y_true, y_pred)
+    metrics = {"precision": precision_score(y_true, y_pred)}
     metrics["recall"] = recall_score(y_true, y_pred)
     metrics["f1"] = f1_score(y_true, y_pred)
     return metrics
@@ -62,8 +62,7 @@ def eval_probe(
 
 def map_fn(s_batched):
     b, p, h = s_batched["activation"].shape
-    new_s_batched = {}
-    new_s_batched["pixel_activation"] = einops.rearrange(s_batched["activation"], "b p h -> (b p) h")
+    new_s_batched = {"pixel_activation": einops.rearrange(s_batched["activation"], "b p h -> (b p) h")}
     new_s_batched["pixel_label"] = einops.repeat(s_batched["label"], "b -> (b p)", p=p)
     new_s_batched["pixel_class"] = [s_batched["class"][i] for i in range(b) for _ in range(p)]
     new_s_batched["pixel_index"] = einops.repeat(torch.arange(p), "p -> (b p)", b=b)
@@ -103,7 +102,7 @@ def main(args: argparse.Namespace):
             torch_ds = labeled_ds.select_columns(["activation", "label", "class"]).with_format("torch")
             pred_dataset = torch_ds.map(map_fn, remove_columns=["activation", "label", "class"], batched=True)
 
-            config_name = layer_name if args.probe_config is None else args.probe_config
+            config_name = LAYER_NAMES[IDX] if args.probe_config is None else args.probe_config
             try:
                 with open(
                     ASSETS_FOLDER
@@ -126,27 +125,21 @@ def main(args: argparse.Namespace):
             logger.info(
                 f"Layer: {layer_name}, Concept: {concept}, Global metrics: {metrics[layer_name][concept]['global']}"
             )
-            # analysis.plot_metric_boxes(
-            #     metrics[layer_name][concept]["per_pixel"],
-            #     title=f"{layer_name}/{concept}",
-            #     save_to=ASSETS_FOLDER
-            #     / "figures"
-            #     / "sanity_checks"
-            #     / subfolder
-            #     / f"{layer_name}_{concept}_pixel_boxes.png",
-            # )
-
     for concept in CONCEPTS:
         analysis.plot_metric_boxes_per_layer(
             metrics,
             concept,
-            title=f"{concept}",
-            save_to=ASSETS_FOLDER / f"figures{suffix}" / "sanity_checks" / subfolder / f"{concept}_layer_boxes.png",
+            title=f"{LAYER_NAMES[IDX]}/{concept}",
+            save_to=ASSETS_FOLDER
+            / f"figures{suffix}"
+            / "sanity_checks"
+            / subfolder
+            / f"{LAYER_NAMES[IDX]}_{concept}_mixed_boxes.png",
         )
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser("probes-sanity-checks")
+    parser = argparse.ArgumentParser("probes-mixed-checks")
     parser.add_argument("--mode", type=str, default="torch_clf")
     parser.add_argument(
         "--dataset_name",

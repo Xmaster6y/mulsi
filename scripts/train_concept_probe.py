@@ -10,7 +10,7 @@ import argparse
 
 import einops
 import torch
-from datasets import load_dataset
+from datasets import concatenate_datasets, load_dataset
 from huggingface_hub import HfApi
 from loguru import logger
 from sklearn.linear_model import LogisticRegression
@@ -23,27 +23,37 @@ from mulsi.clf import CLF
 from scripts.constants import ASSETS_FOLDER, HF_TOKEN, LABELED_CLASSES, CLASSES
 
 
+def map_fn(s_batched):
+    b, p, h = s_batched["activation"].shape
+    new_s_batched = {"pixel_activation": einops.rearrange(s_batched["activation"], "b p h -> (b p) h")}
+    new_s_batched["pixel_label"] = einops.repeat(s_batched["label"], "b -> (b p)", p=p)
+    new_s_batched["pixel_index"] = einops.repeat(torch.arange(p), "p -> (b p)", b=b)
+    return new_s_batched
+
+
 def main(args):
     logger.info(f"Load dataset from {args.dataset_name}")
-    init_ds = load_dataset(args.dataset_name, args.config_name)
-    selected_classes = LABELED_CLASSES if args.only_labeled else CLASSES
-    filtered_ds = init_ds.filter(lambda s: s[args.concept] is not None and s["class"] in selected_classes)
-    labeled_ds = filtered_ds.rename_column(args.concept, "label")
-    labeled_ds = labeled_ds.class_encode_column("label")
-    torch_ds = labeled_ds.select_columns(["activation", "label"]).with_format("torch")
+    if args.config_name == "all":
+        configs = [f"layers.{i}" for i in range(12)]
+    else:
+        configs = [args.config_name]
+    train_datasets = []
+    test_datasets = []
+    for config_name in configs:
+        logger.info(f"Load dataset for config: {config_name}")
+        init_ds = load_dataset(args.dataset_name, config_name)
+        selected_classes = LABELED_CLASSES if args.only_labeled else CLASSES
+        filtered_ds = init_ds.filter(lambda s: s[args.concept] is not None and s["class"] in selected_classes)
+        labeled_ds = filtered_ds.rename_column(args.concept, "label")
+        labeled_ds = labeled_ds.class_encode_column("label")
+        torch_ds = labeled_ds.select_columns(["activation", "label"]).with_format("torch")
 
-    def map_fn(s_batched):
-        b, p, h = s_batched["activation"].shape
-        new_s_batched = {}
-        new_s_batched["pixel_activation"] = einops.rearrange(s_batched["activation"], "b p h -> (b p) h")
-        new_s_batched["pixel_label"] = einops.repeat(s_batched["label"], "b -> (b p)", p=p)
-        new_s_batched["pixel_index"] = einops.repeat(torch.arange(p), "p -> (b p)", b=b)
-        return new_s_batched
+        _dataset = torch_ds.map(map_fn, remove_columns=["activation", "label"], batched=True)
+        train_datasets.append(_dataset["train"])
+        test_datasets.append(_dataset["test"])
 
-    dataset = torch_ds.map(map_fn, remove_columns=["activation", "label"], batched=True)
-
-    train_ds = dataset["train"]
-    test_ds = dataset["test"]
+    train_ds = concatenate_datasets(train_datasets)
+    test_ds = concatenate_datasets(test_datasets)
     logger.info(f"Train shape: {train_ds.shape}, Test shape: {test_ds.shape}")
 
     pipe_clf = Pipeline(
@@ -54,13 +64,14 @@ def main(args):
                 LogisticRegression(
                     penalty=args.penalty,
                     solver=args.solver,
+                    max_iter=1000,
                 ),
             ),
         ]
     )
-    parameters = {"clf__max_iter": [200, 500], "clf__C": [1e-1, 1, 10]}
+    parameters = {"clf__C": [1e-1, 1, 10]}
     sss = StratifiedShuffleSplit(n_splits=5, test_size=0.4, random_state=0)
-    gs = GridSearchCV(pipe_clf, parameters, scoring="f1", cv=sss, n_jobs=-1)
+    gs = GridSearchCV(pipe_clf, parameters, scoring="f1", cv=sss, n_jobs=1 if args.config_name == "all" else -1)
 
     logger.info(f"Train LR classifier for concept: {args.concept}")
     gs.fit(X=train_ds["pixel_activation"], y=train_ds["pixel_label"])
