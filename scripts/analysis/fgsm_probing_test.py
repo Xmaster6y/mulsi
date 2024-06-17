@@ -69,21 +69,24 @@ def main(args: argparse.Namespace):
     for layer_name in LAYER_NAMES:
         probes[layer_name] = {}
         for concept in CONCEPTS:
+            config_name = layer_name if args.probe_config is None else args.probe_config
             with open(
-                ASSETS_FOLDER / f"{dataset_name.replace('concepts', 'probes')}/data/{layer_name}/{concept}/clf.pt",
+                ASSETS_FOLDER / f"{dataset_name.replace('concepts', 'probes')}/data/{config_name}/{concept}/clf.pt",
                 "rb",
             ) as f:
                 probes[layer_name][concept] = torch.load(f)
 
     processor, base_model, clf_model, loss, id2label, label2id = setup_torch_clf(dataset_name)
 
-    os.makedirs(ASSETS_FOLDER / "figures", exist_ok=True)
+    suffix = "" if args.probe_config is None else f"_{args.probe_config}"
+    os.makedirs(ASSETS_FOLDER / f"figures{suffix}", exist_ok=True)
+
     for class_name, good_indices in GOOD_INDICES.items():
         filtered_ds = dataset.filter(lambda s: s["class"] == class_name)
         for target in GOOD_INDICES.keys():
             if target == class_name:
                 continue
-            os.makedirs(ASSETS_FOLDER / "figures" / f"{class_name}_{target}", exist_ok=True)
+            os.makedirs(ASSETS_FOLDER / f"figures{suffix}" / f"{class_name}_{target}", exist_ok=True)
             it = range(len(filtered_ds)) if good_indices is None else good_indices
             for i in it:
                 adv_im, storage = analysis.produce_adv_im(
@@ -107,7 +110,7 @@ def main(args: argparse.Namespace):
                         [0, args.n_iter // 2, args.n_iter],
                         title=f"{class_name} -> {target}",
                         save_to=ASSETS_FOLDER
-                        / "figures"
+                        / f"figures{suffix}"
                         / f"{class_name}_{target}"
                         / f"{i}_{concept}_through_layers.png",
                     )
@@ -116,14 +119,20 @@ def main(args: argparse.Namespace):
                         [f"layers.{i}" for i in [0, 4, 8, 11]],
                         [concept],
                         title=f"{class_name} -> {target}",
-                        save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_{concept}_proba.png",
+                        save_to=ASSETS_FOLDER
+                        / f"figures{suffix}"
+                        / f"{class_name}_{target}"
+                        / f"{i}_{concept}_proba.png",
                     )
                     analysis.plot_mean_proba(
                         storage,
                         [f"layers.{i}" for i in [0, 4, 8, 11]],
                         [concept],
                         title=f"{class_name} -> {target}",
-                        save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_{concept}_mean_proba.png",
+                        save_to=ASSETS_FOLDER
+                        / f"figures{suffix}"
+                        / f"{class_name}_{target}"
+                        / f"{i}_{concept}_mean_proba.png",
                     )
                 analysis.plot_logits(
                     storage,
@@ -131,17 +140,17 @@ def main(args: argparse.Namespace):
                     id2label,
                     labels=["tomato", "lemon", "orange", "apple", "banana"],
                     title=f"{class_name} -> {target}",
-                    save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_logits.png",
+                    save_to=ASSETS_FOLDER / f"figures{suffix}" / f"{class_name}_{target}" / f"{i}_logits.png",
                 )
-                # analysis.plot_proba_heatmap(
-                #     storage,
-                #     LAYER_NAMES,
-                #     CONCEPTS,
-                #     title=f"{class_name} -> {target}",
-                #     save_to=ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_heatmap_label.png",
-                # )
+                analysis.plot_proba_heatmap(
+                    storage,
+                    LAYER_NAMES,
+                    CONCEPTS,
+                    title=f"{class_name} -> {target}",
+                    save_to=ASSETS_FOLDER / f"figures{suffix}" / f"{class_name}_{target}" / f"{i}_heatmap_label.png",
+                )
                 adv_pil_im = to_pil_image(adv_im.adv.cpu())
-                adv_pil_im.save(ASSETS_FOLDER / "figures" / f"{class_name}_{target}" / f"{i}_adv.png")
+                adv_pil_im.save(ASSETS_FOLDER / f"figures{suffix}" / f"{class_name}_{target}" / f"{i}_adv.png")
 
 
 def parse_args() -> argparse.Namespace:
@@ -155,6 +164,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--probe_ref", type=str, default=None)
     parser.add_argument("--epsilon", type=int, default=3)
     parser.add_argument("--n_iter", type=int, default=10)
+    parser.add_argument("--probe_config", type=str, default=None)
     return parser.parse_args()
 
 

@@ -81,8 +81,10 @@ def main(args: argparse.Namespace):
         revision=args.probe_ref,
     )
 
+    suffix = "" if args.probe_config is None else f"_{args.probe_config}"
     subfolder = "only_labeled" if args.only_labeled else "all"
-    os.makedirs(ASSETS_FOLDER / "figures" / "sanity_checks" / subfolder, exist_ok=True)
+    os.makedirs(ASSETS_FOLDER / f"figures{suffix}" / "sanity_checks" / subfolder, exist_ok=True)
+
     metrics = {}
     for layer_name in LAYER_NAMES:
         metrics[layer_name] = {}
@@ -101,11 +103,17 @@ def main(args: argparse.Namespace):
             torch_ds = labeled_ds.select_columns(["activation", "label", "class"]).with_format("torch")
             pred_dataset = torch_ds.map(map_fn, remove_columns=["activation", "label", "class"], batched=True)
 
-            with open(
-                ASSETS_FOLDER / f"{dataset_name.replace('concepts', 'probes')}/data/{layer_name}/{concept}/clf.pt",
-                "rb",
-            ) as f:
-                probe = torch.load(f)
+            config_name = layer_name if args.probe_config is None else args.probe_config
+            try:
+                with open(
+                    ASSETS_FOLDER
+                    / f"{dataset_name.replace('concepts', 'probes')}/data/{config_name}/{concept}/clf.pt",
+                    "rb",
+                ) as f:
+                    probe = torch.load(f)
+            except FileNotFoundError:
+                logger.error(f"Probe not found for {layer_name}/{concept}")
+                continue
 
             metrics[layer_name][concept] = eval_probe(
                 probe,
@@ -133,7 +141,7 @@ def main(args: argparse.Namespace):
             metrics,
             concept,
             title=f"{concept}",
-            save_to=ASSETS_FOLDER / "figures" / "sanity_checks" / subfolder / f"{concept}_layer_boxes.png",
+            save_to=ASSETS_FOLDER / f"figures{suffix}" / "sanity_checks" / subfolder / f"{concept}_layer_boxes.png",
         )
 
 
@@ -147,6 +155,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--probe_ref", type=str, default=None)
     parser.add_argument("--only_labeled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--probe_config", type=str, default=None)
     return parser.parse_args()
 
 

@@ -23,7 +23,7 @@ from scripts.constants import HF_TOKEN, ASSETS_FOLDER, LABELED_CLASSES, CLASSES
 from mulsi import analysis
 
 LAYER_NAMES = [f"layers.{i}" for i in range(12)]
-CONCEPTS = ["yellow", "red", "sphere", "ovaloid", "stem", "cylinder", "pulp", "green"]
+CONCEPTS = ["stem", "cylinder", "pulp", "green"]
 IDX = 0
 
 hf_api = HfApi(token=HF_TOKEN)
@@ -82,8 +82,10 @@ def main(args: argparse.Namespace):
         revision=args.probe_ref,
     )
 
+    suffix = "" if args.probe_config is None else f"_{args.probe_config}"
     subfolder = "only_labeled" if args.only_labeled else "all"
-    os.makedirs(ASSETS_FOLDER / "figures" / "sanity_checks" / subfolder, exist_ok=True)
+    os.makedirs(ASSETS_FOLDER / f"figures{suffix}" / "sanity_checks" / subfolder, exist_ok=True)
+
     metrics = {}
     for layer_name in LAYER_NAMES:
         metrics[layer_name] = {}
@@ -102,12 +104,17 @@ def main(args: argparse.Namespace):
             torch_ds = labeled_ds.select_columns(["activation", "label", "class"]).with_format("torch")
             pred_dataset = torch_ds.map(map_fn, remove_columns=["activation", "label", "class"], batched=True)
 
-            with open(
-                ASSETS_FOLDER
-                / f"{dataset_name.replace('concepts', 'probes')}/data/{LAYER_NAMES[IDX]}/{concept}/clf.pt",
-                "rb",
-            ) as f:
-                probe = torch.load(f)
+            config_name = LAYER_NAMES[IDX] if args.probe_config is None else args.probe_config
+            try:
+                with open(
+                    ASSETS_FOLDER
+                    / f"{dataset_name.replace('concepts', 'probes')}/data/{config_name}/{concept}/clf.pt",
+                    "rb",
+                ) as f:
+                    probe = torch.load(f)
+            except FileNotFoundError:
+                logger.error(f"Probe not found for {layer_name}/{concept}")
+                continue
 
             metrics[layer_name][concept] = eval_probe(
                 probe,
@@ -120,14 +127,13 @@ def main(args: argparse.Namespace):
             logger.info(
                 f"Layer: {layer_name}, Concept: {concept}, Global metrics: {metrics[layer_name][concept]['global']}"
             )
-
     for concept in CONCEPTS:
         analysis.plot_metric_boxes_per_layer(
             metrics,
             concept,
             title=f"{LAYER_NAMES[IDX]}/{concept}",
             save_to=ASSETS_FOLDER
-            / "figures"
+            / f"figures{suffix}"
             / "sanity_checks"
             / subfolder
             / f"{LAYER_NAMES[IDX]}_{concept}_mixed_boxes.png",
@@ -144,6 +150,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--probe_ref", type=str, default=None)
     parser.add_argument("--only_labeled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--probe_config", type=str, default=None)
     return parser.parse_args()
 
 
