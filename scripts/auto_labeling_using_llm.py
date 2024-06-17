@@ -81,15 +81,13 @@ def compute_concepts(votes):
             vote_sum[c] += 2 * vote[c] - 1
     return {c: vote_sum[c] > 0 if vote_sum[c] != 0 else None for c in CONCEPTS}
 
-
 class OpenAIRequest:
     def __init__(self):
         self.client = AzureOpenAI(
-            openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],
+            api_version=os.environ["AZURE_OPENAI_API_VERSION"],
             azure_deployment=os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"],
         )
         self.concepts = ",".join(CONCEPTS)
-        print(self.concepts)
     
     def __call__(self, item: dict, icl: dict, **kwargs) -> ChatCompletion:
         message = [
@@ -134,7 +132,7 @@ Class: {icl["class"]}\nImage:
                 "content": [
                     {
                         "type": "text",
-                        "text": f"Concepts: {icl["concepts"]}"
+                        "text": f"Concepts: {icl['concepts']}"
                     }
                 ],
             },
@@ -143,7 +141,7 @@ Class: {icl["class"]}\nImage:
                 "content": [
                     {
                         "type": "text",
-                        "text": f"Now here is another image and its class, provide the concepts: \nClass: {item["class"]}\nImage:"
+                        "text": f"Now here is another image and its class, provide the concepts: \nClass: {item['class']}\nImage:"
                     },
                     {
                         "type": "image",
@@ -164,15 +162,13 @@ Class: {icl["class"]}\nImage:
 
         return self.client.chat.completions.create(
             model="gpt-4o",
-            messages=[message],
+            messages=message,
             **kwargs
         )
 
 def image2base64(image: BytesIO) -> str:
-    # buffered = BytesIO()
-    # image.save(buffered, format="JPEG")
-    # return base64.b64encode(buffered.getvalue()).decode("utf-8")
-    return base64.b64encode(image.getvalue()).decode()
+    # Call example: image2base64(BytesIO(open("images/00000000.jpg", "rb").read()))
+    return base64.b64encode(image.getvalue()).decode("utf-8")
 
 def get_icl_example_dict(metadata: dict, split: str) -> dict:
     labeled_items_classes = ["tomato", "lemon", "kiwi", "lettuce", "cabbage", "paprika", "beetroots", "bell pepper"]
@@ -198,9 +194,6 @@ def main(args):
 
     for split in SPLITS:
         for item in metadata[split]:
-            print(type(item))
-            print(item.keys())
-
             if item["class"] in LABELED_CLASSES:
                 continue
             key = item["id"]
