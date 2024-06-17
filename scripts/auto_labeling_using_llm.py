@@ -104,8 +104,8 @@ Given an image and its class, provide the concepts that are present in the image
 You may choose from the following concepts only:
 {self.concepts}
 
-Provide the classification in the following format:
-Concepts: (concept: e.g., red, sphere, stem, etc.)
+Provide the classification in the following JSON format:
+{"red": True, "sphere": True, "stem": False, ...}
 """
                     }
                 ],
@@ -167,7 +167,6 @@ Class: {icl["class"]}\nImage:
         )
 
 def image2base64(image: BytesIO) -> str:
-    # Call example: image2base64(BytesIO(open("images/00000000.jpg", "rb").read()))
     return base64.b64encode(image.getvalue()).decode("utf-8")
 
 def get_icl_example_dict(metadata: dict, split: str) -> dict:
@@ -209,12 +208,14 @@ def main(args):
             response = openai_request(  
                 item=item_dict,
                 icl=icl_dict, # TODO: build the ICL dict manually
-                max_tokens=100,
+                max_tokens=200,
                 temperature=0,
             )
                 
-            pred = response.choices[0].message.split(":")[1].strip() if ":" in response.choices[0].message else response.choices[0].message
+            pred = response.choices[0].message.content
+            pred = pred[pred.rfind("{"):pred.rfind("}")]
             print(pred)
+
             concepts = get_pre_labeled_concepts(item)
             if "imenelydiaker" not in votes[key]:
                 continue
