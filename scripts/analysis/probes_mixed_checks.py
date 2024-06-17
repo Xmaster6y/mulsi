@@ -62,8 +62,11 @@ def eval_probe(
 
 def map_fn(s_batched):
     b, p, h = s_batched["activation"].shape
-    new_s_batched = {}
-    new_s_batched["pixel_activation"] = einops.rearrange(s_batched["activation"], "b p h -> (b p) h")
+    new_s_batched = {
+        "pixel_activation": einops.rearrange(
+            s_batched["activation"], "b p h -> (b p) h"
+        )
+    }
     new_s_batched["pixel_label"] = einops.repeat(s_batched["label"], "b -> (b p)", p=p)
     new_s_batched["pixel_class"] = [s_batched["class"][i] for i in range(b) for _ in range(p)]
     new_s_batched["pixel_index"] = einops.repeat(torch.arange(p), "p -> (b p)", b=b)
