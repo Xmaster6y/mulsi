@@ -17,7 +17,7 @@ from PIL import Image
 import jsonlines
 from huggingface_hub import HfApi
 from loguru import logger
-from openai import AzureOpenAI, ChatCompletion
+from openai import AzureOpenAI
 
 from scripts.constants import (
     ASSETS_FOLDER,
@@ -40,7 +40,7 @@ def save_metadata(hf_api: HfApi, metadata: dict, split: str, push_to_hub: bool =
 
     if push_to_hub:
         hf_api.upload_file(
-            path_or_fileobj=f"{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}/" "metadata.jsonl",
+            path_or_fileobj=os.path.join("{ASSETS_FOLDER}/{DATASET_NAME}/data/{split}", "metadata.jsonl"),
             path_in_repo=f"data/{split}/metadata.jsonl",
             repo_id=DATASET_NAME,
             repo_type="dataset",
@@ -90,7 +90,7 @@ class OpenAIRequest:
         )
         self.concepts = ",".join(CONCEPTS)
 
-    def __call__(self, item: dict, icl: dict, **kwargs) -> ChatCompletion:
+    def __call__(self, item: dict, icl: dict, **kwargs):
         """Send a request to the OpenAI API."""
         message = [
             {
@@ -104,11 +104,11 @@ You are a helpful assistant that can help annotating images. Answer by giving th
 Given an image and its class, provide the concepts that are present in the image.
 
 You may choose from the following concepts only:
-{self.concepts}
+{concepts}
 
 Provide the classification in the following JSON format:
-{"red": True, "sphere": True, "stem": False, ...}
-"""
+{{"red": True, "sphere": True, "stem": False, ...}}
+""".format(concepts=self.concepts)
                     }
                 ],
             },
@@ -176,7 +176,7 @@ def image2base64(image: BytesIO) -> str:
 
 def get_icl_example_dict() -> dict:
     """Build ICL example manually."""
-    icl_dict = {
+    return {
         "class": "lettuce",
         # TODO: update path
         "image": image2base64(BytesIO(open("images/00000000.jpg", "rb").read())),
@@ -202,7 +202,6 @@ def get_icl_example_dict() -> dict:
             "tree": False,
         }
     }
-    return icl_dict
 
 
 def main(args):
