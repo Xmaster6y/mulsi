@@ -275,6 +275,9 @@ def main(args):
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("auto-label-dataset")
     parser.add_argument(
+        "--model", type=str, default="gpt-4o", help="Specify the model to use, e.g., 'gpt-4o'")
+    parser.add_argument(
+        "--push_to_hub", action="store_true", help="Flag to push the results to the hub")
         "--model", type=str, default="gpt-4o")
     parser.add_argument(
         "--push_to_hub", action=argparse.BooleanOptionalAction, default=False)
