@@ -101,14 +101,11 @@ class OpenAIRequest:
                         "text": """\
 You are a helpful assistant that can help annotating images. Answer by giving the list of concepts you can see in the provided image.
 
-Given an image and its class, provide the concepts that are present in the image.
+Given an image and its class, annotate the concepts' presence in the image using a JSON format.
 
-You may choose from the following concepts only:
-{concepts}
-
-Provide the classification in the following JSON format:
-{{"red": True, "sphere": True, "stem": False, ...}}
-""".format(concepts=self.concepts)
+The labels must be provided according to the following JSON schema:
+{concept_schema}
+""".format(concept_schema={"properties":{concept: {"type":"boolean"} for concept in self.concepts}})
                     }
                 ],
             },
