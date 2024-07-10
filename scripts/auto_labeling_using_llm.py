@@ -236,9 +236,9 @@ def main(args):
             print(pred)
 
             concepts = get_pre_labeled_concepts(item)
-            if "imenelydiaker" not in votes[key]:
+            if args.model not in votes[key]:
                 continue
-            votes[key] = {"imenelydiaker": concepts}
+            votes[key] = {args.model: concepts}
 
     logger.info("Save votes locally")
     for key in votes:
