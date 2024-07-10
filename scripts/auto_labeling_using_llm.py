@@ -223,7 +223,7 @@ def main(args):
 
             icl_dict = get_icl_example_dict()
 
-            openai_request = OpenAIRequest()
+            openai_request = OpenAIRequest(model=args.model)
             response = openai_request(
                 item=item_dict,
                 icl=icl_dict,
